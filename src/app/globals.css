@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --background: #08110b;
+  --foreground: #f8fff0;
+  --lime: #c8ff1a;
+  --orange: #ff7a00;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background: #08110b;
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.field-bg {
+  background-image:
+    linear-gradient(90deg, rgba(8, 17, 11, .38) 0%, rgba(8, 17, 11, .08) 42%, rgba(8, 17, 11, .24) 100%),
+    radial-gradient(circle at 72% 9%, rgba(255, 122, 0, .18), transparent 28%),
+    radial-gradient(circle at 24% 68%, rgba(200, 255, 26, .1), transparent 30%),
+    url("/images/football-field-bg.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.glass-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-line::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(255, 255, 255, .1), transparent 30%, transparent 70%, rgba(200, 255, 26, .06));
+  opacity: .48;
+}
+
+.stat-ring {
+  background:
+    radial-gradient(circle at center, rgba(15, 20, 16, .92) 0 54%, transparent 55%),
+    conic-gradient(var(--lime) 0 306deg, var(--orange) 306deg 360deg);
+}
+
+.budget-ring {
+  background:
+    radial-gradient(circle at center, rgba(15, 20, 16, .96) 0 54%, transparent 55%),
+    conic-gradient(var(--lime) 0 252deg, var(--orange) 252deg 360deg);
+}
+
+.jersey {
+  clip-path: polygon(18% 10%, 36% 0, 64% 0, 82% 10%, 100% 30%, 84% 45%, 76% 34%, 76% 100%, 24% 100%, 24% 34%, 16% 45%, 0 30%);
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
