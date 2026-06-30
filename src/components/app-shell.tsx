@@ -14,8 +14,9 @@ import { useAuth } from "@/components/auth-provider";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { profile, signOut } = useAuth();
+  const { session, profile, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isSignedIn = Boolean(session);
   const pageCopy =
     pathname === "/"
       ? { title: "Home", subtitle: "Next game, attendance, highlights, and upcoming reservations." }
@@ -50,21 +51,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
-              <LanguageSwitcher />
-              <button className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur-xl sm:h-11 sm:w-11" aria-label="Notifications">
-                <Bell className="h-5 w-5" />
-                <span className="absolute right-0 top-0 grid h-4 w-4 translate-x-1/4 -translate-y-1/4 place-items-center rounded-full bg-lime-300 text-[10px] font-black text-black sm:h-5 sm:w-5 sm:text-xs">3</span>
-              </button>
-              <button onClick={signOut} className="flex min-w-0 shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1 text-left transition hover:border-lime-300/60 sm:gap-3 sm:pr-3" aria-label="Profile menu">
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-lime-300 bg-gradient-to-br from-white to-zinc-500 text-sm font-black text-black sm:h-10 sm:w-10 sm:text-lg">
-                  {(profile?.name || "K").slice(0, 1)}
-                </div>
-                <div className="hidden sm:block">
-                  <p className="text-sm font-black text-white">{profile?.name || "Local"}</p>
-                  <p className="text-xs font-bold text-white/55">Sign out</p>
-                </div>
-                <ChevronDown className="hidden h-5 w-5 text-white/80 sm:block" />
-              </button>
+            <LanguageSwitcher />
+            <button className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-white backdrop-blur-xl sm:h-11 sm:w-11" aria-label="Notifications">
+              <Bell className="h-5 w-5" />
+              <span className="absolute right-0 top-0 grid h-4 w-4 translate-x-1/4 -translate-y-1/4 place-items-center rounded-full bg-lime-300 text-[10px] font-black text-black sm:h-5 sm:w-5 sm:text-xs">3</span>
+            </button>
+            <button
+              onClick={() => isSignedIn && signOut()}
+              className={cn(
+                "flex min-w-0 shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1 text-left transition sm:gap-3 sm:pr-3",
+                isSignedIn ? "hover:border-lime-300/60" : "cursor-default"
+              )}
+              aria-label={isSignedIn ? "Sign out" : "Local development mode"}
+            >
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-lime-300 bg-gradient-to-br from-white to-zinc-500 text-sm font-black text-black sm:h-10 sm:w-10 sm:text-lg">
+                {(profile?.name || "K").slice(0, 1)}
+              </div>
+              <div className="hidden sm:block">
+                <p className="text-sm font-black text-white">{profile?.name || "Local"}</p>
+                <p className="text-xs font-bold text-white/55">{isSignedIn ? "Sign out" : "Local mode"}</p>
+              </div>
+              {isSignedIn && <ChevronDown className="hidden h-5 w-5 text-white/80 sm:block" />}
+            </button>
           </div>
         </div>
 
