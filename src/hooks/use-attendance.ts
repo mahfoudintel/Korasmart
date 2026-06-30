@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { players } from "@/lib/data";
+import { useLocalProfile } from "@/hooks/use-local-profile";
 
 export type AttendanceStatus = "playing" | "waiting";
 
@@ -66,8 +67,13 @@ function promoteWaitingList(reservationAttendance: Record<string, AttendanceReco
 }
 
 export function useAttendance(reservationId?: string) {
+  const { profile } = useLocalProfile();
   const [selectedPlayer, setSelectedPlayer] = useState(players[0].name);
   const [attendance, setAttendance] = useState<AttendanceMap>({});
+
+  useEffect(() => {
+    if (profile.loggedIn) setSelectedPlayer(profile.playerName);
+  }, [profile.loggedIn, profile.playerName]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey);

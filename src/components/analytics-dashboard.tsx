@@ -9,7 +9,7 @@ import { NextReservationTopCard, UpcomingReservationsCard } from "@/components/r
 import { players } from "@/lib/data";
 import { calculateQuantitativeScore, ratingIndicators, type RatingValues } from "@/lib/ratings";
 import { useReservations } from "@/hooks/use-reservations";
-import { formatReservationDate } from "@/lib/reservations";
+import { formatReservationDate, getNextReservation } from "@/lib/reservations";
 
 type PeerRatings = Record<string, Record<string, RatingValues>>;
 type MatchStats = {
@@ -77,7 +77,7 @@ export function AnalyticsDashboard() {
   const submittedRatings = Object.values(ratings).reduce((sum, raterRatings) => sum + Object.keys(raterRatings).length, 0);
   const ratingsPercent = totalPossibleRatings ? Math.round((submittedRatings / totalPossibleRatings) * 100) : 0;
   const ratedPlayers = playerScores.filter((item) => item.score !== null).length;
-  const nextReservation = reservations.find((reservation) => reservation.status === "upcoming");
+  const nextReservation = getNextReservation(reservations);
   const selectedReservation = reservations.find((reservation) => reservation.id === matchStats?.reservationId);
   const totalGoals = matchStats
     ? Object.values(matchStats.scorers || {}).reduce((sum, goals) => sum + Number(goals || 0), 0)

@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { ArrowRight, CalendarCheck } from "lucide-react";
 import { useReservations } from "@/hooks/use-reservations";
-import { formatReservationDate } from "@/lib/reservations";
+import { formatReservationDate, getNextReservation, getUpcomingReservations } from "@/lib/reservations";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { ReservationMapLink } from "@/components/reservation-map-link";
 
 export function NextReservationTopCard() {
   const { reservations } = useReservations();
-  const nextReservation = reservations.find((reservation) => reservation.status === "upcoming");
+  const nextReservation = getNextReservation(reservations);
 
   return (
     <Card className="glass-line min-h-[118px]">
@@ -30,7 +30,7 @@ export function NextReservationTopCard() {
 
 export function UpcomingReservationsCard() {
   const { reservations } = useReservations();
-  const upcoming = reservations.filter((reservation) => reservation.status === "upcoming").slice(0, 3);
+  const upcoming = getUpcomingReservations(reservations).slice(0, 3);
 
   return (
     <Card>

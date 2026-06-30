@@ -9,11 +9,11 @@ import {
 } from "lucide-react";
 
 export const navItems = [
-  { label: "Home", href: "/", icon: Home },
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
-  { label: "Finances", href: "/finances", icon: WalletCards },
-  { label: "Scheduling", href: "/bookings", icon: CalendarDays },
-  { label: "Players Details", href: "/players", icon: Users }
+  { label: "Home", mobileLabel: "Home", href: "/", icon: Home },
+  { label: "Analytics", mobileLabel: "Stats", href: "/analytics", icon: BarChart3 },
+  { label: "Finances", mobileLabel: "Money", href: "/finances", icon: WalletCards },
+  { label: "Scheduling", mobileLabel: "Dates", href: "/bookings", icon: CalendarDays },
+  { label: "Players Details", mobileLabel: "Players", href: "/players", icon: Users }
 ];
 
 export const players = [

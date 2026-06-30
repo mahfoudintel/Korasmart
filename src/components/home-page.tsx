@@ -8,7 +8,7 @@ import { UpcomingReservationsCard } from "@/components/reservation-dashboard-wid
 import { ReservationMapLink } from "@/components/reservation-map-link";
 import { useReservations } from "@/hooks/use-reservations";
 import { useAttendance, playingLimit } from "@/hooks/use-attendance";
-import { formatReservationDate } from "@/lib/reservations";
+import { formatReservationDate, getNextReservation } from "@/lib/reservations";
 import { players } from "@/lib/data";
 
 function HighlightCard({ icon: Icon, label, value, meta }: { icon: LucideIcon; label: string; value: string; meta: string }) {
@@ -30,7 +30,7 @@ function HighlightCard({ icon: Icon, label, value, meta }: { icon: LucideIcon; l
 
 export function HomePage() {
   const { reservations } = useReservations();
-  const nextReservation = reservations.find((reservation) => reservation.status === "upcoming");
+  const nextReservation = getNextReservation(reservations);
   const attendance = useAttendance(nextReservation?.id);
 
   return (
@@ -69,7 +69,9 @@ export function HomePage() {
                     <MapPin className="mt-1 h-6 w-6 text-lime-300" />
                     <div>
                       <ReservationMapLink reservation={nextReservation} className="font-black" />
-                      <p className="mt-1 text-sm text-white/60">{nextReservation.durationMinutes} min football reservation</p>
+                      <p className="mt-1 text-sm text-white/60">
+                        {nextReservation.durationMinutes} <span>min football reservation</span>
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -95,7 +97,7 @@ export function HomePage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <SectionTitle>Attendance List</SectionTitle>
             <span className="rounded-full bg-lime-300/15 px-3 py-1 text-xs font-black text-lime-300">
-              {attendance.summary.playing} attending - {attendance.summary.waiting} waiting
+              {attendance.summary.playing} <span>attending</span> - {attendance.summary.waiting} <span>waiting</span>
             </span>
           </div>
 

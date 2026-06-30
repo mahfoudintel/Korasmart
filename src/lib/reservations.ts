@@ -1,5 +1,15 @@
 export type ReservationStatus = "upcoming" | "past" | "cancelled";
 
+export type MatchReport = {
+  fluorescentTeam: string;
+  orangeTeam: string;
+  fluorescentScore: number;
+  orangeScore: number;
+  winner: "fluorescent" | "orange" | "draw";
+  scorers: string;
+  notes: string;
+};
+
 export type Reservation = {
   id: string;
   date: string;
@@ -9,6 +19,7 @@ export type Reservation = {
   durationMinutes: number;
   sport: "Football";
   status: ReservationStatus;
+  matchReport?: MatchReport;
 };
 
 export const defaultReservations: Reservation[] = [
@@ -73,6 +84,25 @@ export const formatReservationDate = (date: string) =>
 
 export const sortReservations = (reservations: Reservation[]) =>
   [...reservations].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+
+export const getReservationStart = (reservation: Pick<Reservation, "date" | "time">) =>
+  new Date(`${reservation.date}T${reservation.time || "00:00"}:00`);
+
+export const getEffectiveReservationStatus = (reservation: Reservation, now = new Date()): ReservationStatus => {
+  if (reservation.status === "cancelled") return "cancelled";
+  return getReservationStart(reservation).getTime() < now.getTime() ? "past" : "upcoming";
+};
+
+export const getNextReservation = (reservations: Reservation[], now = new Date()) =>
+  sortReservations(reservations).find((reservation) => getEffectiveReservationStatus(reservation, now) === "upcoming");
+
+export const getUpcomingReservations = (reservations: Reservation[], now = new Date()) =>
+  sortReservations(reservations).filter((reservation) => getEffectiveReservationStatus(reservation, now) === "upcoming");
+
+export const getPastReservations = (reservations: Reservation[], now = new Date()) =>
+  sortReservations(reservations)
+    .filter((reservation) => getEffectiveReservationStatus(reservation, now) === "past")
+    .reverse();
 
 export const getReservationMapUrl = (reservation: Pick<Reservation, "venue" | "field">) =>
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${reservation.venue} ${reservation.field}`)}`;

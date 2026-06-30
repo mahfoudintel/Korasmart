@@ -199,7 +199,183 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Use admin edit now; later these edits should save to `payments`, `expenses`, and a finance snapshot in Supabase.": {
     fr: "Utilisez la modification admin maintenant ; plus tard ces changements seront sauvegardes dans Supabase.",
     ar: "استخدم تعديل الإدارة الآن؛ لاحقا سيتم حفظ هذه التغييرات في Supabase."
-  }
+  },
+  "Next game, attendance, highlights, and upcoming reservations.": {
+    fr: "Prochain match, presence, moments importants et reservations a venir.",
+    ar: "المباراة القادمة، الحضور، أبرز النقاط، والحجوزات القادمة."
+  },
+  "KoraSmart Home": { fr: "Accueil KoraSmart", ar: "رئيسية KoraSmart" },
+  "Next game, attendance, and club rhythm.": {
+    fr: "Prochain match, presence et rythme du groupe.",
+    ar: "المباراة القادمة، الحضور، وإيقاع المجموعة."
+  },
+  "This is the simple member view: check the next reservation, put your name down, see who is confirmed, and follow the upcoming games.": {
+    fr: "Vue simple pour les membres : consultez la prochaine reservation, confirmez votre presence, voyez les joueurs confirmes et suivez les matchs a venir.",
+    ar: "واجهة بسيطة للأعضاء: راجع الحجز القادم، أكد حضورك، شاهد اللاعبين المؤكدين، وتابع المباريات القادمة."
+  },
+  "Player ratings": { fr: "Notes joueurs", ar: "تقييم اللاعبين" },
+  "Full schedule": { fr: "Planning complet", ar: "الجدول الكامل" },
+  "Incoming game details": { fr: "Details du prochain match", ar: "تفاصيل المباراة القادمة" },
+  "No upcoming game has been scheduled yet.": {
+    fr: "Aucun match a venir n'est encore planifie.",
+    ar: "لم يتم تحديد أي مباراة قادمة بعد."
+  },
+  "Confirmed spots": { fr: "Places confirmees", ar: "الأماكن المؤكدة" },
+  "First come, first served": { fr: "Premier inscrit, premier servi", ar: "الأولوية حسب ترتيب التسجيل" },
+  "Promotes automatically": { fr: "Monte automatiquement", ar: "الترقية تلقائية" },
+  Members: { fr: "Membres", ar: "الأعضاء" },
+  "Registered group list": { fr: "Liste du groupe inscrit", ar: "قائمة المجموعة المسجلة" },
+  "Fair teams": { fr: "Equipes equilibrees", ar: "فرق عادلة" },
+  Ratings: { fr: "Notes", ar: "التقييمات" },
+  "Anonymous peer scores": { fr: "Notes anonymes entre joueurs", ar: "تقييمات مجهولة بين اللاعبين" },
+  "Attendance List": { fr: "Liste de presence", ar: "قائمة الحضور" },
+  "Confirmed players": { fr: "Joueurs confirmes", ar: "اللاعبون المؤكدون" },
+  "Quick Info": { fr: "Infos rapides", ar: "معلومات سريعة" },
+  "Match stats are entered after the game from Players Details.": {
+    fr: "Les statistiques du match sont saisies apres le match depuis Details joueurs.",
+    ar: "يتم إدخال إحصائيات المباراة بعد انتهائها من تفاصيل اللاعبين."
+  },
+  "Player ratings stay anonymous and feed future fair teams.": {
+    fr: "Les notes restent anonymes et aident a former des equipes equilibrees.",
+    ar: "تبقى تقييمات اللاعبين مجهولة وتساعد على تكوين فرق عادلة لاحقا."
+  },
+  "First 10 members who choose attending are confirmed. Later signups join the waiting list automatically. No response means not attending.": {
+    fr: "Les 10 premiers membres qui confirment leur presence jouent. Les suivants passent automatiquement en liste d'attente. Sans reponse, le joueur est considere absent.",
+    ar: "أول 10 أعضاء يؤكدون الحضور يتم تثبيتهم. التسجيلات اللاحقة تنتقل تلقائيا إلى قائمة الانتظار. عدم الرد يعني عدم الحضور."
+  },
+  Attending: { fr: "Present", ar: "حاضر" },
+  "Not attending": { fr: "Absent", ar: "غير حاضر" },
+  "Drop out": { fr: "Me retirer", ar: "انسحاب" },
+  "Not attending by default until you choose attending.": {
+    fr: "Absent par defaut jusqu'a confirmation de votre presence.",
+    ar: "تعتبر غير حاضر افتراضيا حتى تؤكد الحضور."
+  },
+  "Controlled by your logged-in profile.": {
+    fr: "Controle par votre profil connecte.",
+    ar: "يتم التحكم به من خلال ملفك المتصل."
+  },
+  "Player profile": { fr: "Profil joueur", ar: "ملف اللاعب" },
+  "Local login for this prototype. Later this becomes your real account.": {
+    fr: "Connexion locale pour ce prototype. Plus tard, ce sera votre vrai compte.",
+    ar: "تسجيل دخول محلي لهذا النموذج. لاحقا سيصبح حسابك الحقيقي."
+  },
+  "Logged in": { fr: "Connecte", ar: "متصل" },
+  "Logged out": { fr: "Deconnecte", ar: "غير متصل" },
+  "Local profile": { fr: "Profil local", ar: "ملف محلي" },
+  "Tap to login": { fr: "Cliquer pour se connecter", ar: "اضغط لتسجيل الدخول" },
+  "Upload avatar": { fr: "Importer une photo", ar: "رفع صورة" },
+  "Choose avatar": { fr: "Choisir un avatar", ar: "اختر صورة رمزية" },
+  "Soccer avatar": { fr: "Avatar football", ar: "صورة كرة قدم" },
+  "Display name": { fr: "Nom affiche", ar: "اسم العرض" },
+  "Assigned to this login. Only your avatar and display name can be changed here.": {
+    fr: "Associe a cette connexion. Ici, vous pouvez seulement changer votre avatar et votre nom affiche.",
+    ar: "مرتبط بتسجيل الدخول هذا. هنا يمكنك تغيير صورتك واسم العرض فقط."
+  },
+  Logout: { fr: "Deconnexion", ar: "تسجيل الخروج" },
+  Login: { fr: "Connexion", ar: "تسجيل الدخول" },
+  Done: { fr: "Terminer", ar: "تم" },
+  "Attendance uses this logged-in player automatically. For real deployment, this will be protected by username and password.": {
+    fr: "La presence utilise automatiquement ce joueur connecte. Au deploiement, ce sera protege par nom d'utilisateur et mot de passe.",
+    ar: "يستخدم الحضور هذا اللاعب المتصل تلقائيا. عند النشر الحقيقي، سيكون محميا باسم مستخدم وكلمة مرور."
+  },
+  Notifications: { fr: "Notifications", ar: "الإشعارات" },
+  "Live from schedule and attendance.": {
+    fr: "Mises a jour depuis le planning et la presence.",
+    ar: "تحديثات مباشرة من الجدولة والحضور."
+  },
+  "Nothing new right now.": { fr: "Rien de nouveau pour le moment.", ar: "لا جديد حاليا." },
+  "Enable browser notifications on this device": {
+    fr: "Activer les notifications du navigateur sur cet appareil",
+    ar: "تفعيل إشعارات المتصفح على هذا الجهاز"
+  },
+  "No notifications yet.": { fr: "Aucune notification pour le moment.", ar: "لا توجد إشعارات بعد." },
+  "Next game scheduled": { fr: "Prochain match planifie", ar: "تمت جدولة المباراة القادمة" },
+  "Attendance is open": { fr: "Presence ouverte", ar: "تم فتح الحضور" },
+  "Choose attending to reserve your place. No response means not attending.": {
+    fr: "Choisissez Present pour reserver votre place. Sans reponse, vous etes considere absent.",
+    ar: "اختر حاضر لحجز مكانك. عدم الرد يعني عدم الحضور."
+  },
+  "You are confirmed": { fr: "Vous etes confirme", ar: "تم تأكيدك" },
+  "You are on the waiting list": { fr: "Vous etes en liste d'attente", ar: "أنت في قائمة الانتظار" },
+  Empty: { fr: "Vide", ar: "فارغ" },
+  "No official game entered": { fr: "Aucun match officiel saisi", ar: "لم يتم إدخال أي مباراة رسمية" }
+  ,
+  Chat: { fr: "Chat", ar: "الدردشة" },
+  Money: { fr: "Caisse", ar: "المال" },
+  Dates: { fr: "Dates", ar: "المواعيد" },
+  "Team messages inside KoraSmart.": {
+    fr: "Messages d'equipe dans KoraSmart.",
+    ar: "رسائل الفريق داخل KoraSmart."
+  },
+  "Team Chat": { fr: "Chat d'equipe", ar: "دردشة الفريق" },
+  "Messages from logged-in players.": {
+    fr: "Messages des joueurs connectes.",
+    ar: "رسائل اللاعبين المتصلين."
+  },
+  messages: { fr: "messages", ar: "رسائل" },
+  Delete: { fr: "Supprimer", ar: "حذف" },
+  Send: { fr: "Envoyer", ar: "إرسال" },
+  "No messages yet.": { fr: "Aucun message pour le moment.", ar: "لا توجد رسائل بعد." },
+  "Start the first team conversation.": {
+    fr: "Lancez la premiere conversation du groupe.",
+    ar: "ابدأ أول محادثة للفريق."
+  },
+  "Write a message": { fr: "Ecrire un message", ar: "اكتب رسالة" },
+  "Chat Access": { fr: "Acces chat", ar: "صلاحية الدردشة" },
+  "Only your logged-in profile can post here.": {
+    fr: "Seul votre profil connecte peut publier ici.",
+    ar: "يمكن لملفك المتصل فقط النشر هنا."
+  },
+  "You can delete your own messages.": {
+    fr: "Vous pouvez supprimer vos propres messages.",
+    ar: "يمكنك حذف رسائلك فقط."
+  },
+  "For deployment, this will become realtime chat with protected accounts.": {
+    fr: "Au deploiement, ce sera un chat en temps reel avec des comptes proteges.",
+    ar: "عند النشر، ستصبح دردشة فورية بحسابات محمية."
+  },
+  "Team chat": { fr: "Chat d'equipe", ar: "دردشة الفريق" },
+  "Open chat": { fr: "Ouvrir chat", ar: "فتح الدردشة" },
+  "Private or group messages": {
+    fr: "Messages prives ou en groupe",
+    ar: "رسائل خاصة أو جماعية"
+  },
+  "Direct messages": { fr: "Messages directs", ar: "رسائل مباشرة" },
+  "New group": { fr: "Nouveau groupe", ar: "مجموعة جديدة" },
+  Group: { fr: "Groupe", ar: "مجموعة" },
+  "Open group chat": { fr: "Ouvrir le groupe", ar: "فتح دردشة المجموعة" },
+  "All members": { fr: "Tous les membres", ar: "كل الأعضاء" },
+  Online: { fr: "En ligne", ar: "متصل" },
+  Offline: { fr: "Hors ligne", ar: "غير متصل" },
+  "Past Games": { fr: "Matchs passes", ar: "المباريات السابقة" },
+  "Finished reservations move here automatically after their date and time pass. Update team compositions, score, winner, scorers, and notes.": {
+    fr: "Les reservations terminees arrivent ici automatiquement apres leur date et heure. Mettez a jour les compositions, le score, le gagnant, les buteurs et les notes.",
+    ar: "تنتقل الحجوزات المنتهية هنا تلقائيا بعد مرور التاريخ والوقت. حدّث التشكيلات، النتيجة، الفريق الفائز، الهدافين، والملاحظات."
+  },
+  games: { fr: "matchs", ar: "مباريات" },
+  "Past game": { fr: "Match passe", ar: "مباراة سابقة" },
+  "Fluorescent team composition": { fr: "Composition equipe fluo", ar: "تشكيلة الفريق الفوسفوري" },
+  "Orange team composition": { fr: "Composition equipe orange", ar: "تشكيلة الفريق البرتقالي" },
+  "Winning team": { fr: "Equipe gagnante", ar: "الفريق الفائز" },
+  Draw: { fr: "Egalite", ar: "تعادل" },
+  Fluorescent: { fr: "Fluo", ar: "الفوسفوري" },
+  Orange: { fr: "Orange", ar: "البرتقالي" },
+  Scorers: { fr: "Buteurs", ar: "الهدافون" },
+  Notes: { fr: "Notes", ar: "ملاحظات" },
+  "No past games yet.": { fr: "Aucun match passe pour le moment.", ar: "لا توجد مباريات سابقة بعد." },
+  "min football reservation": { fr: "min de reservation football", ar: "دقيقة حجز كرة قدم" },
+  attending: { fr: "presents", ar: "حاضرون" },
+  waiting: { fr: "en attente", ar: "في الانتظار" },
+  "Use Drop out if something comes up.": {
+    fr: "Utilisez Me retirer en cas d'empechement.",
+    ar: "استخدم انسحاب إذا حدث مانع."
+  },
+  "You move up automatically if someone drops out.": {
+    fr: "Vous montez automatiquement si quelqu'un se retire.",
+    ar: "تتقدم تلقائيا إذا انسحب أحد اللاعبين."
+  },
+  spot: { fr: "place", ar: "مكان" },
+  position: { fr: "position", ar: "الترتيب" }
 };
 
 export function translateText(text: string, language: Language) {

@@ -5,13 +5,15 @@ import { CalendarDays, CheckCircle2, Clock3, LogOut, MapPin, UserX } from "lucid
 import { players } from "@/lib/data";
 import { useAttendance, playingLimit } from "@/hooks/use-attendance";
 import { useReservations } from "@/hooks/use-reservations";
-import { formatReservationDate } from "@/lib/reservations";
+import { formatReservationDate, getNextReservation } from "@/lib/reservations";
 import { cn } from "@/lib/utils";
 import { ReservationMapLink } from "@/components/reservation-map-link";
+import { useLocalProfile } from "@/hooks/use-local-profile";
 
 export function NextMatchAttendance({ compact = false }: { compact?: boolean }) {
+  const { profile } = useLocalProfile();
   const { reservations } = useReservations();
-  const nextReservation = reservations.find((reservation) => reservation.status === "upcoming");
+  const nextReservation = getNextReservation(reservations);
   const {
     selectedPlayer,
     setSelectedPlayer,
@@ -71,6 +73,7 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
           <select
             value={selectedPlayer}
             onChange={(event) => setSelectedPlayer(event.target.value)}
+            disabled={profile.loggedIn}
             className="mt-2 h-10 w-full rounded-2xl border border-white/15 bg-white/10 px-3 font-black text-white outline-none"
           >
             {players.map((player) => (
@@ -79,6 +82,7 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
               </option>
             ))}
           </select>
+          {profile.loggedIn && <span className="mt-2 block text-[11px] text-white/45">Controlled by your logged-in profile.</span>}
         </label>
       )}
 
