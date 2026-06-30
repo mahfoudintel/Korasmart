@@ -16,8 +16,8 @@ type Contribution = {
 const storageKey = "korasmart-finance-admin-v1";
 
 export function AdminFinancePanel() {
-  const { role } = useRole();
-  const canEdit = canEditFinance(role);
+  const { roles } = useRole();
+  const canEdit = canEditFinance(roles);
   const [adminMode, setAdminMode] = useState(false);
   const [balance, setBalance] = useState(financeSnapshot.balance);
   const [reservedUntil, setReservedUntil] = useState(financeSnapshot.reservedUntil);

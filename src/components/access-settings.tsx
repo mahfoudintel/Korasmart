@@ -7,12 +7,12 @@ import { Card, SectionTitle } from "@/components/ui/card";
 
 const defaultAssignments: Array<{ player: string; role: UserRole }> = [
   { player: "Najib", role: "admin" },
-  { player: "Ahmed G", role: "finance" },
-  { player: "Nawfal", role: "booking" }
+  { player: "Nawfal", role: "admin" }
 ];
 
 export function AccessSettings() {
-  const { role } = useRole();
+  const { roles } = useRole();
+  const detectedRoles = roles.map((role) => roleLabels[role]).join(", ");
 
   return (
     <Card>
@@ -20,7 +20,7 @@ export function AccessSettings() {
         <div>
           <SectionTitle>Access Control</SectionTitle>
           <p className="mt-3 text-sm text-white/65">
-            Everyone can view and submit attendance. Editing permissions must come from backend roles, not from a user-facing switch.
+            Every member has Player access. Administrator includes Booking officer and Budget officer permissions.
           </p>
         </div>
         <ShieldCheck className="h-8 w-8 text-lime-300" />
@@ -36,8 +36,8 @@ export function AccessSettings() {
       </div>
 
       <div className="mt-5 rounded-2xl border border-white/10 bg-white/[.06] p-4 text-sm text-white/65">
-        Current local build runs with owner access for setup. In production, Supabase Auth should load the signed-in user role from `user_roles`, and only admins should grant finance or booking roles.
-        <span className="mt-2 block font-black text-lime-300">Detected setup role: {roleLabels[role]}</span>
+        Production access loads from Supabase Auth and `user_roles`. Only Administrators should grant operational roles.
+        <span className="mt-2 block font-black text-lime-300">Detected setup role: {detectedRoles}</span>
       </div>
     </Card>
   );

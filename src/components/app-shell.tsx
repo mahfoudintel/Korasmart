@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { NextMatchAttendance } from "@/components/next-match-attendance";
+import { useAuth } from "@/components/auth-provider";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { profile, signOut } = useAuth();
   const mobileItems = navItems.slice(0, 5);
   const pageCopy =
     pathname === "/"
@@ -69,10 +71,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Bell className="h-5 w-5" />
                 <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-lime-300 text-xs font-black text-black">3</span>
               </button>
-              <div className="flex items-center gap-3">
-                <div className="grid h-12 w-12 place-items-center rounded-full border-2 border-lime-300 bg-gradient-to-br from-white to-zinc-500 text-2xl">ðŸ‘¤</div>
+              <button onClick={signOut} className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 py-1 pl-1 pr-3 text-left transition hover:border-lime-300/60">
+                <div className="grid h-10 w-10 place-items-center rounded-full border-2 border-lime-300 bg-gradient-to-br from-white to-zinc-500 text-lg font-black text-black">
+                  {(profile?.name || "K").slice(0, 1)}
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-sm font-black text-white">{profile?.name || "Local"}</p>
+                  <p className="text-xs font-bold text-white/55">Sign out</p>
+                </div>
                 <ChevronDown className="hidden h-5 w-5 text-white/80 sm:block" />
-              </div>
+              </button>
             </div>
           </header>
 

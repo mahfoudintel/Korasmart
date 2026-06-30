@@ -21,8 +21,8 @@ const emptyReservation: Reservation = {
 };
 
 export function ReservationAdmin() {
-  const { role } = useRole();
-  const canEdit = canEditBookings(role);
+  const { roles } = useRole();
+  const canEdit = canEditBookings(roles);
   const { reservations, upsertReservation, removeReservation, resetReservations } = useReservations();
   const [draft, setDraft] = useState<Reservation>(emptyReservation);
 
