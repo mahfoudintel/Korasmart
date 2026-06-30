@@ -11,14 +11,14 @@ export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
 
   return (
-    <div className="flex h-11 items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 backdrop-blur-xl" aria-label="Language switcher">
-      <Languages className="h-4 w-4 text-white/70" />
+    <div className="flex h-10 shrink-0 items-center gap-0.5 rounded-full border border-white/10 bg-white/5 px-1.5 backdrop-blur-xl sm:h-11 sm:gap-1 sm:px-2" aria-label="Language switcher">
+      <Languages className="hidden h-4 w-4 text-white/70 min-[390px]:block" />
       {languages.map((item) => (
         <button
           key={item}
           onClick={() => setLanguage(item)}
           className={cn(
-            "h-8 rounded-full px-3 text-xs font-black transition",
+            "h-8 rounded-full px-2 text-[11px] font-black transition sm:px-3 sm:text-xs",
             language === item ? "bg-lime-300 text-black" : "text-white/72 hover:text-white"
           )}
         >
