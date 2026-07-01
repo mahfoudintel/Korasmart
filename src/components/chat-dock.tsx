@@ -77,16 +77,23 @@ export function ChatDock() {
       </button>
 
       {open && (
-        <div className="mr-3 grid h-[min(720px,calc(100vh-7rem))] w-[min(1040px,calc(100vw-1.5rem))] overflow-hidden rounded-[22px] border border-white/12 bg-[#10190f]/95 shadow-2xl backdrop-blur-xl lg:grid-cols-[300px_minmax(0,1fr)]">
+        <div className="relative mr-3 grid h-[min(720px,calc(100vh-7rem))] w-[min(1040px,calc(100vw-1.5rem))] overflow-hidden rounded-[22px] border border-white/12 bg-[#10190f]/95 shadow-2xl backdrop-blur-xl lg:grid-cols-[300px_minmax(0,1fr)]">
+          <button
+            onClick={() => setOpen(false)}
+            className="absolute right-3 top-3 z-20 inline-flex h-11 items-center gap-2 rounded-full border border-orange-300/45 bg-black/65 px-4 text-sm font-black text-orange-100 shadow-[0_0_24px_rgba(251,146,60,.22)] backdrop-blur-xl transition hover:border-orange-200 hover:bg-orange-400 hover:text-black"
+            aria-label="Close chat"
+            title="Close chat"
+          >
+            <X className="h-5 w-5" />
+            <span className="hidden sm:inline">Close</span>
+          </button>
+
           <aside className="hidden min-h-0 border-r border-white/10 bg-white/[.04] p-4 lg:flex lg:flex-col">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 pr-24">
               <div>
                 <p className="text-sm font-black text-white">Team chat</p>
                 <p className="text-xs text-white/50">Private or group messages</p>
               </div>
-              <button onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-full border border-white/10 text-white/70 hover:text-white">
-                <X className="h-4 w-4" />
-              </button>
             </div>
 
             <button
@@ -165,7 +172,7 @@ export function ChatDock() {
           </aside>
 
           <section className="flex min-w-0 flex-col">
-            <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4">
+            <header className="flex items-center justify-between gap-3 border-b border-white/10 p-4 pr-28">
               <div className="flex items-center gap-3">
                 <div className="grid h-10 w-10 place-items-center rounded-full bg-lime-300/20 text-lime-300">
                   <MessageCircle className="h-5 w-5" />
@@ -175,9 +182,6 @@ export function ChatDock() {
                   <p className="text-xs text-white/50">{visibleMessages.length} <span>messages</span></p>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-white/70 hover:text-white lg:hidden">
-                <X className="h-4 w-4" />
-              </button>
             </header>
 
             <div className="border-b border-white/10 p-3 lg:hidden">

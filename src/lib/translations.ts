@@ -271,12 +271,31 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
     fr: "Associe a cette connexion. Ici, vous pouvez seulement changer votre avatar et votre nom affiche.",
     ar: "مرتبط بتسجيل الدخول هذا. هنا يمكنك تغيير صورتك واسم العرض فقط."
   },
+  "Assigned to this login.": {
+    fr: "Associe a cette connexion.",
+    ar: "مرتبط بهذا الحساب."
+  },
+  Username: { fr: "Nom d'utilisateur", ar: "اسم المستخدم" },
+  Password: { fr: "Mot de passe", ar: "كلمة المرور" },
+  "Invalid username or password.": {
+    fr: "Nom d'utilisateur ou mot de passe incorrect.",
+    ar: "اسم المستخدم أو كلمة المرور غير صحيح."
+  },
+  "Prototype login: username is the player name without spaces, password is kora2026.": {
+    fr: "Connexion prototype : le nom d'utilisateur est le nom du joueur sans espaces, le mot de passe est kora2026.",
+    ar: "تسجيل دخول تجريبي: اسم المستخدم هو اسم اللاعب بدون فراغات، وكلمة المرور هي kora2026."
+  },
+  Cancel: { fr: "Annuler", ar: "إلغاء" },
   Logout: { fr: "Deconnexion", ar: "تسجيل الخروج" },
   Login: { fr: "Connexion", ar: "تسجيل الدخول" },
   Done: { fr: "Terminer", ar: "تم" },
   "Attendance uses this logged-in player automatically. For real deployment, this will be protected by username and password.": {
     fr: "La presence utilise automatiquement ce joueur connecte. Au deploiement, ce sera protege par nom d'utilisateur et mot de passe.",
     ar: "يستخدم الحضور هذا اللاعب المتصل تلقائيا. عند النشر الحقيقي، سيكون محميا باسم مستخدم وكلمة مرور."
+  },
+  "Attendance uses this profile automatically.": {
+    fr: "La presence utilise automatiquement ce profil.",
+    ar: "يستخدم الحضور هذا الملف تلقائيا."
   },
   Notifications: { fr: "Notifications", ar: "الإشعارات" },
   "Live from schedule and attendance.": {
@@ -336,6 +355,7 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   },
   "Team chat": { fr: "Chat d'equipe", ar: "دردشة الفريق" },
   "Open chat": { fr: "Ouvrir chat", ar: "فتح الدردشة" },
+  Close: { fr: "Fermer", ar: "إغلاق" },
   "Private or group messages": {
     fr: "Messages prives ou en groupe",
     ar: "رسائل خاصة أو جماعية"

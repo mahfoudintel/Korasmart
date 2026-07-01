@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { players } from "@/lib/data";
 
 export type LocalProfile = {
+  username: string;
   playerName: string;
   displayName: string;
   avatarDataUrl: string;
@@ -11,16 +12,55 @@ export type LocalProfile = {
   loggedIn: boolean;
 };
 
+type LocalUser = {
+  username: string;
+  password: string;
+  playerName: string;
+  avatarPreset: string;
+};
+
 const storageKey = "korasmart-local-profile-v1";
+const usersStorageKey = "korasmart-local-users-v1";
 const profileChangedEvent = "korasmart-local-profile-changed";
 
+const normalizeUsername = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const defaultUsers: LocalUser[] = players.map((player, index) => ({
+  username: normalizeUsername(player.name),
+  password: "kora2026",
+  playerName: player.name,
+  avatarPreset: `/images/avatars/avatar-${String((index % 20) + 1).padStart(2, "0")}.png`
+}));
+
 const defaultProfile: LocalProfile = {
+  username: defaultUsers[0].username,
   playerName: players[0].name,
   displayName: players[0].name,
   avatarDataUrl: "",
   avatarPreset: "/images/avatars/avatar-01.png",
   loggedIn: true
 };
+
+function readUsers(): LocalUser[] {
+  if (typeof window === "undefined") return defaultUsers;
+
+  try {
+    const saved = window.localStorage.getItem(usersStorageKey);
+    if (!saved) {
+      window.localStorage.setItem(usersStorageKey, JSON.stringify(defaultUsers));
+      return defaultUsers;
+    }
+
+    const savedUsers = JSON.parse(saved) as LocalUser[];
+    return defaultUsers.map((defaultUser) => ({
+      ...defaultUser,
+      ...(savedUsers.find((user) => user.username === defaultUser.username) || {})
+    }));
+  } catch {
+    window.localStorage.removeItem(usersStorageKey);
+    return defaultUsers;
+  }
+}
 
 function readProfile(): LocalProfile {
   if (typeof window === "undefined") return defaultProfile;
@@ -66,6 +106,25 @@ export function useLocalProfile() {
   };
 
   const login = () => updateProfile({ loggedIn: true });
+  const loginWithCredentials = (username: string, password: string) => {
+    const normalizedUsername = normalizeUsername(username);
+    const user = readUsers().find((item) => item.username === normalizedUsername && item.password === password);
+    if (!user) return false;
+
+    const samePlayer = profile.playerName === user.playerName;
+
+    setProfile({
+      ...profile,
+      username: user.username,
+      playerName: user.playerName,
+      displayName: samePlayer ? profile.displayName : user.playerName,
+      avatarDataUrl: samePlayer ? profile.avatarDataUrl : "",
+      avatarPreset: samePlayer ? profile.avatarPreset : user.avatarPreset,
+      loggedIn: true
+    });
+
+    return true;
+  };
   const logout = () => updateProfile({ loggedIn: false });
 
   return {
@@ -73,6 +132,7 @@ export function useLocalProfile() {
     setProfile,
     updateProfile,
     login,
+    loginWithCredentials,
     logout
   };
 }
