@@ -44,7 +44,7 @@ export function ProfileMenu() {
     <div className="relative">
       <button
         onClick={() => setOpen((value) => !value)}
-        className="flex h-12 items-center gap-3 rounded-full border border-white/10 bg-white/5 px-2 pr-3 text-left text-white backdrop-blur-xl"
+        className="flex h-12 items-center gap-3 rounded-full border border-white/60 bg-white/70 px-2 pr-3 text-left text-slate-950 shadow-[0_10px_24px_rgba(38,59,28,.1)] backdrop-blur-xl"
       >
         <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-lime-300 bg-gradient-to-br from-white to-zinc-500 text-lg font-black text-black">
           {avatarSrc ? (
@@ -55,13 +55,13 @@ export function ProfileMenu() {
         </span>
         <span className="hidden leading-tight sm:block">
           <span className="block max-w-28 truncate text-sm font-black">{profile.loggedIn ? profile.displayName : "Logged out"}</span>
-          <span className="block text-xs text-white/55">{profile.loggedIn ? "Local profile" : "Tap to login"}</span>
+          <span className="block text-xs text-slate-500">{profile.loggedIn ? "Local profile" : "Tap to login"}</span>
         </span>
-        <ChevronDown className="hidden h-4 w-4 text-white/70 sm:block" />
+        <ChevronDown className="hidden h-4 w-4 text-slate-600 sm:block" />
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-3 w-[min(24rem,calc(100vw-2rem))] rounded-[20px] border border-white/10 bg-[#10190f]/95 p-4 shadow-2xl backdrop-blur-xl">
+        <div className="glass-panel absolute right-0 z-50 mt-3 w-[min(24rem,calc(100vw-2rem))] rounded-[20px] p-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => profile.loggedIn && inputRef.current?.click()}
@@ -79,8 +79,8 @@ export function ProfileMenu() {
               </span>
             </button>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-black text-white">Player profile</p>
-              <span className="mt-2 inline-flex rounded-full bg-lime-300/15 px-3 py-1 text-xs font-black text-lime-300">
+              <p className="text-sm font-black text-slate-950">Player profile</p>
+              <span className="mt-2 inline-flex rounded-full bg-lime-100 px-3 py-1 text-xs font-black text-[#247e24]">
                 {profile.loggedIn ? "Logged in" : "Logged out"}
               </span>
             </div>
@@ -88,11 +88,11 @@ export function ProfileMenu() {
 
           {profile.loggedIn && (
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <button onClick={logout} className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-orange-300/50 bg-orange-400/12 px-4 text-sm font-black text-orange-100 shadow-[0_0_18px_rgba(251,146,60,.12)] transition hover:bg-orange-400 hover:text-black">
+              <button onClick={logout} className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-orange-300/60 bg-orange-100 px-4 text-sm font-black text-orange-700 transition hover:bg-orange-400 hover:text-black">
                 <LogOut className="h-4 w-4" />
                 Logout
               </button>
-              <button onClick={() => setOpen(false)} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-lime-300 px-4 text-sm font-black text-black shadow-[0_0_22px_rgba(190,255,64,.22)] transition hover:bg-lime-200">
+              <button onClick={() => setOpen(false)} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#49b848] px-4 text-sm font-black text-white shadow-[0_12px_24px_rgba(47,158,47,.2)] transition hover:bg-[#3ca63c]">
                 <Save className="h-4 w-4" />
                 Done
               </button>
@@ -111,8 +111,8 @@ export function ProfileMenu() {
             <>
               <div className="mt-4 grid gap-3">
                 <div>
-                  <p className="text-xs font-bold text-white/65">Choose avatar</p>
-                  <div className="mt-2 grid max-h-44 grid-cols-5 gap-2 overflow-y-auto rounded-2xl border border-white/10 bg-white/[.04] p-2">
+                  <p className="text-xs font-bold text-slate-600">Choose avatar</p>
+                  <div className="mt-2 grid max-h-44 grid-cols-5 gap-2 overflow-y-auto rounded-2xl border border-white/60 bg-white/50 p-2">
                     {avatarPresets.map((avatar) => {
                       const active = !profile.avatarDataUrl && profile.avatarPreset === avatar;
 
@@ -120,7 +120,7 @@ export function ProfileMenu() {
                         <button
                           key={avatar}
                           onClick={() => updateProfile({ avatarPreset: avatar, avatarDataUrl: "" })}
-                          className={`relative aspect-square overflow-hidden rounded-full border-2 ${active ? "border-lime-300" : "border-white/10"}`}
+                          className={`relative aspect-square overflow-hidden rounded-full border-2 ${active ? "border-lime-500" : "border-white/70"}`}
                           title="Choose avatar"
                         >
                           <Image src={avatar} alt="Soccer avatar" fill sizes="56px" className="object-cover" />
@@ -130,18 +130,18 @@ export function ProfileMenu() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/[.05] p-3">
-                  <p className="text-xs font-bold text-white/65">Player</p>
-                  <p className="mt-1 font-black text-white">{profile.playerName}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-white/45">Assigned to this login.</p>
+                <div className="rounded-2xl border border-white/60 bg-white/50 p-3">
+                  <p className="text-xs font-bold text-slate-600">Player</p>
+                  <p className="mt-1 font-black text-slate-950">{profile.playerName}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">Assigned to this login.</p>
                 </div>
 
-                <label className="text-xs font-bold text-white/65">
+                <label className="text-xs font-bold text-slate-600">
                   Display name
                   <input
                     value={profile.displayName}
                     onChange={(event) => updateProfile({ displayName: event.target.value })}
-                    className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-3 font-black text-white outline-none"
+                    className="mt-2 h-11 w-full rounded-2xl border border-white/60 bg-white/60 px-3 font-black text-slate-950 outline-none"
                   />
                 </label>
               </div>
@@ -149,16 +149,16 @@ export function ProfileMenu() {
             </>
           ) : (
             <div className="mt-4 grid gap-3">
-              <label className="text-xs font-bold text-white/65">
+              <label className="text-xs font-bold text-slate-600">
                 Username
                 <input
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
                   placeholder="najib"
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-3 font-black text-white outline-none placeholder:text-white/35"
+                  className="mt-2 h-11 w-full rounded-2xl border border-white/60 bg-white/60 px-3 font-black text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </label>
-              <label className="text-xs font-bold text-white/65">
+              <label className="text-xs font-bold text-slate-600">
                 Password
                 <input
                   value={password}
@@ -166,18 +166,18 @@ export function ProfileMenu() {
                   onKeyDown={(event) => event.key === "Enter" && submitLogin()}
                   type="password"
                   placeholder="kora2026"
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-3 font-black text-white outline-none placeholder:text-white/35"
+                  className="mt-2 h-11 w-full rounded-2xl border border-white/60 bg-white/60 px-3 font-black text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </label>
-              {loginError && <p className="rounded-2xl border border-orange-300/20 bg-orange-300/10 p-3 text-xs font-bold text-orange-200">{loginError}</p>}
-              <p className="rounded-2xl bg-white/[.05] p-3 text-xs leading-relaxed text-white/55">
+              {loginError && <p className="rounded-2xl border border-orange-300/40 bg-orange-100 p-3 text-xs font-bold text-orange-700">{loginError}</p>}
+              <p className="rounded-2xl bg-white/50 p-3 text-xs leading-relaxed text-slate-500">
                 Prototype login: username is the player name without spaces, password is kora2026.
               </p>
               <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => setOpen(false)} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/15 px-4 text-sm font-black text-white/82">
+                <button onClick={() => setOpen(false)} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/60 bg-white/40 px-4 text-sm font-black text-slate-700">
                   Cancel
                 </button>
-                <button onClick={submitLogin} className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-lime-300 px-4 text-sm font-black text-black">
+                <button onClick={submitLogin} className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#49b848] px-4 text-sm font-black text-white">
                   <LogIn className="h-4 w-4" />
                   Login
                 </button>
@@ -186,7 +186,7 @@ export function ProfileMenu() {
           )}
 
           {profile.loggedIn && (
-            <p className="mt-4 rounded-2xl bg-white/[.05] p-3 text-xs font-bold text-white/58">
+            <p className="mt-4 rounded-2xl bg-white/50 p-3 text-xs font-bold text-slate-500">
               Attendance uses this profile automatically.
             </p>
           )}

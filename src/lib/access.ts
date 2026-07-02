@@ -1,17 +1,21 @@
-export type UserRole = "member" | "admin" | "finance" | "booking";
+export type UserRole = "admin" | "budgeting_booking_officer" | "player";
+export type LegacyUserRole = "member" | "finance" | "booking";
 
 export const roleLabels: Record<UserRole, string> = {
-  member: "Player",
-  admin: "Administrator",
-  finance: "Budget officer",
-  booking: "Booking officer"
+  admin: "Admin",
+  budgeting_booking_officer: "Budgeting & Booking officer",
+  player: "Player"
 };
 
-export type UserRoleInput = UserRole | UserRole[];
+export function normalizeRole(role: UserRole | LegacyUserRole | string | null | undefined): UserRole {
+  if (role === "admin") return "admin";
+  if (role === "budgeting_booking_officer" || role === "finance" || role === "booking") return "budgeting_booking_officer";
+  return "player";
+}
 
-const hasRole = (roleInput: UserRoleInput, role: UserRole) =>
-  Array.isArray(roleInput) ? roleInput.includes(role) : roleInput === role;
-
-export const canEditFinance = (roleInput: UserRoleInput) => hasRole(roleInput, "admin") || hasRole(roleInput, "finance");
-export const canEditBookings = (roleInput: UserRoleInput) => hasRole(roleInput, "admin") || hasRole(roleInput, "booking");
-export const canManageRoles = (roleInput: UserRoleInput) => hasRole(roleInput, "admin");
+export const canManageFinances = (role: UserRole) => role === "admin" || role === "budgeting_booking_officer";
+export const canManageSchedule = (role: UserRole) => role === "admin" || role === "budgeting_booking_officer";
+export const canManageMembers = (role: UserRole) => role === "admin";
+export const canManageRoles = (role: UserRole) => role === "admin";
+export const canEditFinance = canManageFinances;
+export const canEditBookings = canManageSchedule;

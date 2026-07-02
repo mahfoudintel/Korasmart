@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAttendance } from "@/hooks/use-attendance";
 import { useReservations } from "@/hooks/use-reservations";
 import { formatReservationDate, getNextReservation } from "@/lib/reservations";
+import { getSessionReservationStatus } from "@/lib/workflow-rules";
 
 export type AppNotification = {
   id: string;
@@ -28,7 +29,7 @@ function readIdSet(key: string) {
 export function useAppNotifications() {
   const { reservations } = useReservations();
   const nextReservation = getNextReservation(reservations);
-  const attendance = useAttendance(nextReservation?.id);
+  const attendance = useAttendance(nextReservation?.id, nextReservation);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const [permission, setPermission] = useState<NotificationPermission>("default");
 
@@ -44,15 +45,16 @@ export function useAppNotifications() {
       {
         id: `reservation-${nextReservation.id}`,
         title: "Next game scheduled",
-        body: `${formatReservationDate(nextReservation.date)} at ${nextReservation.time} - ${nextReservation.field}`,
+        body: `${formatReservationDate(nextReservation.date)} at ${nextReservation.time} - ${nextReservation.venue}`,
         href: "/"
       }
     ];
+    const reservationStatus = getSessionReservationStatus(nextReservation);
 
-    if (!attendance.currentStatus) {
+    if (!attendance.currentStatus && reservationStatus === "open") {
       items.push({
-        id: `attendance-open-${nextReservation.id}`,
-        title: "Attendance is open",
+        id: `reservation-open-${nextReservation.id}`,
+        title: "Reservation is open",
         body: "Choose attending to reserve your place. No response means not attending.",
         href: "/"
       });

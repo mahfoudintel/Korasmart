@@ -1,13 +1,14 @@
 export type ReservationStatus = "upcoming" | "past" | "cancelled";
 
 export type MatchReport = {
-  fluorescentTeam: string;
-  orangeTeam: string;
+  fluorescentTeam: string[];
+  orangeTeam: string[];
   fluorescentScore: number;
   orangeScore: number;
   winner: "fluorescent" | "orange" | "draw";
-  scorers: string;
+  scorers: Record<string, number>;
   notes: string;
+  submittedAt?: string;
 };
 
 export type Reservation = {
@@ -19,6 +20,9 @@ export type Reservation = {
   durationMinutes: number;
   sport: "Football";
   status: ReservationStatus;
+  reservationOpenAt?: string;
+  reservationStatus?: "closed" | "open" | "completed";
+  notificationSentAt?: string;
   matchReport?: MatchReport;
 };
 
@@ -104,5 +108,5 @@ export const getPastReservations = (reservations: Reservation[], now = new Date(
     .filter((reservation) => getEffectiveReservationStatus(reservation, now) === "past")
     .reverse();
 
-export const getReservationMapUrl = (reservation: Pick<Reservation, "venue" | "field">) =>
-  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${reservation.venue} ${reservation.field}`)}`;
+export const getReservationMapUrl = (reservation: Pick<Reservation, "venue">) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(reservation.venue)}`;

@@ -2,6 +2,7 @@ create extension if not exists "pgcrypto";
 
 create table if not exists players (
   id uuid primary key default gen_random_uuid(),
+  auth_user_id uuid unique,
   name text not null,
   position text not null,
   avatar_url text,
@@ -17,7 +18,7 @@ create table if not exists players (
 create table if not exists user_roles (
   id uuid primary key default gen_random_uuid(),
   player_id uuid references players(id) on delete cascade,
-  role text not null check (role in ('member', 'admin', 'finance', 'booking')),
+  role text not null check (role in ('admin', 'budgeting_booking_officer', 'player')),
   granted_by uuid references players(id) on delete set null,
   granted_at timestamptz not null default now(),
   unique (player_id, role)
@@ -114,10 +115,97 @@ create table if not exists bookings (
   venue text,
   duration_minutes int not null default 60,
   sport text not null default 'Football',
-  status text not null default 'available',
+  status text not null default 'upcoming',
+  reservation_status text not null default 'closed' check (reservation_status in ('closed', 'open', 'completed')),
+  reservation_open_at timestamptz,
+  notification_sent_at timestamptz,
   external_provider text default 'Dabat Animations',
-  external_id text
+  external_id text unique
 );
+
+alter table attendance
+  add column if not exists booking_id uuid references bookings(id) on delete cascade;
+
+create or replace function reservation_open_at(starts_at timestamptz)
+returns timestamptz
+language sql
+stable
+as $$
+  select ((date_trunc('day', starts_at at time zone 'Africa/Casablanca') - interval '1 day') + time '11:00') at time zone 'Africa/Casablanca';
+$$;
+
+create or replace function booking_attendance_is_open(booking_starts_at timestamptz, booking_duration_minutes int)
+returns boolean
+language sql
+stable
+as $$
+  select now() >= reservation_open_at(booking_starts_at)
+    and now() < booking_starts_at + make_interval(mins => booking_duration_minutes);
+$$;
+
+create table if not exists finance_transactions (
+  id uuid primary key default gen_random_uuid(),
+  type text not null check (type in ('booking_cost', 'booking_cost_reversal', 'manual_adjustment')),
+  amount numeric(10,2) not null,
+  currency text not null default 'dh',
+  booking_id uuid references bookings(id) on delete set null,
+  reversed_transaction_id uuid references finance_transactions(id) on delete set null,
+  note text not null,
+  created_by uuid references players(id) on delete set null,
+  created_at timestamptz not null default now(),
+  constraint booking_cost_negative check (type <> 'booking_cost' or amount < 0),
+  constraint booking_reversal_positive check (type <> 'booking_cost_reversal' or amount > 0)
+);
+
+create unique index if not exists one_booking_cost_per_booking
+  on finance_transactions (booking_id)
+  where type = 'booking_cost' and booking_id is not null;
+
+create unique index if not exists one_booking_cost_reversal
+  on finance_transactions (reversed_transaction_id)
+  where type = 'booking_cost_reversal' and reversed_transaction_id is not null;
+
+create table if not exists app_notifications (
+  id uuid primary key default gen_random_uuid(),
+  player_id uuid references players(id) on delete cascade,
+  notification_key text not null,
+  title text not null,
+  body text not null,
+  href text not null default '/',
+  read_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique (player_id, notification_key)
+);
+
+create table if not exists chat_conversations (
+  id uuid primary key default gen_random_uuid(),
+  type text not null check (type in ('team', 'private', 'group')),
+  created_by uuid references players(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists chat_participants (
+  conversation_id uuid references chat_conversations(id) on delete cascade,
+  player_id uuid references players(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (conversation_id, player_id)
+);
+
+create table if not exists chat_messages (
+  id uuid primary key default gen_random_uuid(),
+  conversation_id uuid references chat_conversations(id) on delete cascade,
+  sender_id uuid references players(id) on delete set null,
+  body text not null,
+  deleted_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists bookings_starts_at_idx on bookings (starts_at);
+create index if not exists bookings_open_at_idx on bookings (reservation_open_at);
+create index if not exists attendance_booking_idx on attendance (booking_id);
+create index if not exists finance_transactions_booking_idx on finance_transactions (booking_id);
+create index if not exists app_notifications_player_idx on app_notifications (player_id, read_at);
+create index if not exists chat_messages_conversation_idx on chat_messages (conversation_id, created_at);
 
 create table if not exists mvp_votes (
   id uuid primary key default gen_random_uuid(),
@@ -171,9 +259,114 @@ on conflict do nothing;
 insert into finance_snapshots (balance, currency, reserved_until, note) values
   (-170, 'dh', '2026-07-27', 'Nouvelle situation de la caisse a ce jour. Terrain reserve chaque semaine jusqu''au 27/07/2026');
 
-insert into bookings (field_name, venue, starts_at, duration_minutes, sport, status, external_provider, external_id) values
-  ('F6-10', 'LYCEE IBN ROCHD', '2026-06-29 20:00:00+01', 60, 'Football', 'upcoming', 'Mes reservations', 'res-2026-06-29'),
-  ('F6-10', 'LYCEE IBN ROCHD', '2026-07-06 20:00:00+01', 60, 'Football', 'upcoming', 'Mes reservations', 'res-2026-07-06'),
-  ('F6-10', 'LYCEE IBN ROCHD', '2026-07-13 20:00:00+01', 60, 'Football', 'upcoming', 'Mes reservations', 'res-2026-07-13'),
-  ('F6-10', 'LYCEE IBN ROCHD', '2026-07-20 20:00:00+01', 60, 'Football', 'upcoming', 'Mes reservations', 'res-2026-07-20'),
-  ('F6-10', 'LYCEE IBN ROCHD', '2026-07-27 20:00:00+01', 60, 'Football', 'upcoming', 'Mes reservations', 'res-2026-07-27');
+insert into bookings (field_name, venue, starts_at, duration_minutes, sport, status, reservation_status, reservation_open_at, external_provider, external_id) values
+  ('F6-10', 'LYCEE IBN ROCHD', '2026-06-29 20:00:00+01', 60, 'Football', 'upcoming', 'closed', reservation_open_at('2026-06-29 20:00:00+01'), 'Mes reservations', 'res-2026-06-29'),
+  ('F6-10', 'LYCEE IBN ROCHD', '2026-07-06 20:00:00+01', 60, 'Football', 'upcoming', 'closed', reservation_open_at('2026-07-06 20:00:00+01'), 'Mes reservations', 'res-2026-07-06'),
+  ('F6-10', 'LYCEE IBN ROCHD', '2026-07-13 20:00:00+01', 60, 'Football', 'upcoming', 'closed', reservation_open_at('2026-07-13 20:00:00+01'), 'Mes reservations', 'res-2026-07-13'),
+  ('F6-10', 'LYCEE IBN ROCHD', '2026-07-20 20:00:00+01', 60, 'Football', 'upcoming', 'closed', reservation_open_at('2026-07-20 20:00:00+01'), 'Mes reservations', 'res-2026-07-20'),
+  ('F6-10', 'LYCEE IBN ROCHD', '2026-07-27 20:00:00+01', 60, 'Football', 'upcoming', 'closed', reservation_open_at('2026-07-27 20:00:00+01'), 'Mes reservations', 'res-2026-07-27')
+on conflict (external_id) do nothing;
+
+alter table players enable row level security;
+alter table user_roles enable row level security;
+alter table bookings enable row level security;
+alter table attendance enable row level security;
+alter table finance_transactions enable row level security;
+alter table app_notifications enable row level security;
+alter table chat_conversations enable row level security;
+alter table chat_participants enable row level security;
+alter table chat_messages enable row level security;
+
+drop policy if exists "players can read roster" on players;
+create policy "players can read roster" on players for select using (auth.uid() is not null);
+
+drop policy if exists "admins manage roles" on user_roles;
+create policy "admins manage roles" on user_roles using (
+  exists (
+    select 1 from user_roles ur
+    join players p on p.id = ur.player_id
+    where p.auth_user_id = auth.uid() and ur.role = 'admin'
+  )
+);
+
+drop policy if exists "members read bookings" on bookings;
+create policy "members read bookings" on bookings for select using (auth.uid() is not null);
+
+drop policy if exists "officers manage bookings" on bookings;
+create policy "officers manage bookings" on bookings for all using (
+  exists (
+    select 1 from user_roles ur
+    join players p on p.id = ur.player_id
+    where p.auth_user_id = auth.uid() and ur.role in ('admin', 'budgeting_booking_officer')
+  )
+) with check (
+  exists (
+    select 1 from user_roles ur
+    join players p on p.id = ur.player_id
+    where p.auth_user_id = auth.uid() and ur.role in ('admin', 'budgeting_booking_officer')
+  )
+);
+
+drop policy if exists "players update attendance only when open" on attendance;
+create policy "players update attendance only when open" on attendance for all using (
+  exists (select 1 from players p where p.id = attendance.player_id and p.auth_user_id = auth.uid())
+) with check (
+  exists (select 1 from players p where p.id = attendance.player_id and p.auth_user_id = auth.uid())
+  and (
+    attendance.booking_id is null
+    or exists (
+      select 1 from bookings b
+      where b.id = attendance.booking_id
+        and booking_attendance_is_open(b.starts_at, b.duration_minutes)
+    )
+  )
+);
+
+drop policy if exists "officers manage finance transactions" on finance_transactions;
+create policy "officers manage finance transactions" on finance_transactions for all using (
+  exists (
+    select 1 from user_roles ur
+    join players p on p.id = ur.player_id
+    where p.auth_user_id = auth.uid() and ur.role in ('admin', 'budgeting_booking_officer')
+  )
+) with check (
+  exists (
+    select 1 from user_roles ur
+    join players p on p.id = ur.player_id
+    where p.auth_user_id = auth.uid() and ur.role in ('admin', 'budgeting_booking_officer')
+  )
+);
+
+drop policy if exists "players read own notifications" on app_notifications;
+create policy "players read own notifications" on app_notifications for select using (
+  exists (select 1 from players p where p.id = app_notifications.player_id and p.auth_user_id = auth.uid())
+);
+
+drop policy if exists "participants read conversations" on chat_conversations;
+create policy "participants read conversations" on chat_conversations for select using (
+  exists (
+    select 1 from chat_participants cp
+    join players p on p.id = cp.player_id
+    where cp.conversation_id = chat_conversations.id and p.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "participants read chat messages" on chat_messages;
+create policy "participants read chat messages" on chat_messages for select using (
+  exists (
+    select 1 from chat_participants cp
+    join players p on p.id = cp.player_id
+    where cp.conversation_id = chat_messages.conversation_id and p.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "participants send chat messages" on chat_messages;
+create policy "participants send chat messages" on chat_messages for insert with check (
+  exists (
+    select 1 from chat_participants cp
+    join players p on p.id = cp.player_id
+    where cp.conversation_id = chat_messages.conversation_id
+      and cp.player_id = chat_messages.sender_id
+      and p.auth_user_id = auth.uid()
+  )
+);

@@ -54,6 +54,11 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function canReadMessage(message: ChatMessage, playerName: string) {
+  if (message.conversationId === "team") return true;
+  return [message.playerName, ...message.recipients].includes(playerName);
+}
+
 export function useChat() {
   const { profile } = useLocalProfile();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -71,6 +76,7 @@ export function useChat() {
   }, []);
 
   const currentAvatar = profile.avatarDataUrl || profile.avatarPreset;
+  const visibleMessages = messages.filter((message) => canReadMessage(message, profile.playerName));
 
   const sendMessage = (body: string, conversationId = "team", recipients: string[] = []) => {
     const trimmed = body.trim();
@@ -104,7 +110,7 @@ export function useChat() {
   const ownPlayerName = profile.playerName;
 
   return {
-    messages,
+    messages: visibleMessages,
     ownPlayerName,
     loggedIn: profile.loggedIn,
     sendMessage,

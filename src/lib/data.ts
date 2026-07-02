@@ -4,6 +4,7 @@ import {
   Home,
   Medal,
   Shield,
+  Trophy,
   Users,
   WalletCards
 } from "lucide-react";
@@ -12,7 +13,8 @@ export const navItems = [
   { label: "Home", mobileLabel: "Home", href: "/", icon: Home },
   { label: "Analytics", mobileLabel: "Stats", href: "/analytics", icon: BarChart3 },
   { label: "Finances", mobileLabel: "Money", href: "/finances", icon: WalletCards },
-  { label: "Scheduling", mobileLabel: "Dates", href: "/bookings", icon: CalendarDays },
+  { label: "Schedule", mobileLabel: "Dates", href: "/bookings", icon: CalendarDays },
+  { label: "Game Statistics", mobileLabel: "Stats", href: "/past-games", icon: Trophy },
   { label: "Players Details", mobileLabel: "Players", href: "/players", icon: Users }
 ];
 

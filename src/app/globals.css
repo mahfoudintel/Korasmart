@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: dark;
-  --background: #08110b;
-  --foreground: #f8fff0;
+  color-scheme: light;
+  --background: #eef7ea;
+  --foreground: #07110a;
   --lime: #c8ff1a;
+  --green: #2f9e2f;
   --orange: #ff7a00;
 }
 
@@ -21,7 +22,7 @@ body {
   min-height: 100vh;
   margin: 0;
   overflow-x: hidden;
-  background: #08110b;
+  background: #eef7ea;
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
@@ -33,13 +34,57 @@ a {
 
 .field-bg {
   background-image:
-    linear-gradient(90deg, rgba(8, 17, 11, .38) 0%, rgba(8, 17, 11, .08) 42%, rgba(8, 17, 11, .24) 100%),
-    radial-gradient(circle at 72% 9%, rgba(255, 122, 0, .18), transparent 28%),
-    radial-gradient(circle at 24% 68%, rgba(200, 255, 26, .1), transparent 30%),
-    url("/images/football-field-bg.png");
+    linear-gradient(90deg, rgba(247, 252, 244, .68) 0%, rgba(255, 255, 255, .24) 38%, rgba(255, 247, 221, .28) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, .34) 0%, rgba(255, 255, 255, .08) 42%, rgba(31, 98, 23, .2) 100%),
+    url("/images/football-field-v2-bg.png");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, .78);
+  border: 1px solid rgba(255, 255, 255, .62);
+  box-shadow: 0 18px 48px rgba(34, 52, 29, .12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-panel .text-white,
+.glass-panel [class~="text-white"] {
+  color: rgba(7, 17, 10, .94) !important;
+}
+
+.glass-panel [class~="text-white/86"],
+.glass-panel [class~="text-white/82"],
+.glass-panel [class~="text-white/80"],
+.glass-panel [class~="text-white/78"],
+.glass-panel [class~="text-white/72"],
+.glass-panel [class~="text-white/70"],
+.glass-panel [class~="text-white/68"],
+.glass-panel [class~="text-white/66"],
+.glass-panel [class~="text-white/65"],
+.glass-panel [class~="text-white/62"],
+.glass-panel [class~="text-white/60"],
+.glass-panel [class~="text-white/58"],
+.glass-panel [class~="text-white/55"],
+.glass-panel [class~="text-white/45"] {
+  color: rgba(43, 57, 68, .74) !important;
+}
+
+.glass-panel .text-lime-300,
+.glass-panel [class~="text-lime-300"],
+.glass-panel .text-lime-200,
+.glass-panel [class~="text-lime-200"] {
+  color: #2f9e2f !important;
+}
+
+.glass-panel [class~="bg-white/[.05]"],
+.glass-panel [class~="bg-white/[.06]"],
+.glass-panel [class~="bg-white/[.08]"],
+.glass-panel [class~="bg-white/4"],
+.glass-panel [class~="bg-white/10"] {
+  background-color: rgba(255, 255, 255, .48) !important;
 }
 
 .glass-line {

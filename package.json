@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "setup:member-users": "node scripts/create-member-users.mjs"
+    "check:workflows": "node scripts/workflow-checks.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",

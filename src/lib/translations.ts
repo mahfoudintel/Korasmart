@@ -16,7 +16,8 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Players Details": { fr: "Details joueurs", ar: "تفاصيل اللاعبين" },
   Teams: { fr: "Equipes", ar: "الفرق" },
   Bookings: { fr: "Reservations", ar: "الحجوزات" },
-  Scheduling: { fr: "Planning", ar: "الجدولة" },
+  Scheduling: { fr: "Schedule", ar: "الجدول" },
+  Schedule: { fr: "Schedule", ar: "الجدول" },
   Calendar: { fr: "Calendrier", ar: "التقويم" },
   Stats: { fr: "Stats", ar: "الإحصائيات" },
   Rankings: { fr: "Classements", ar: "الترتيب" },
@@ -368,6 +369,23 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   Online: { fr: "En ligne", ar: "متصل" },
   Offline: { fr: "Hors ligne", ar: "غير متصل" },
   "Past Games": { fr: "Matchs passes", ar: "المباريات السابقة" },
+  "Game Statistics": { fr: "Statistiques des matchs", ar: "إحصائيات المباريات" },
+  "Match reports, team sheets, scores, and scorers.": {
+    fr: "Rapports de match, compositions, scores et buteurs.",
+    ar: "تقارير المباريات، التشكيلات، النتائج، والهدافون."
+  },
+  "Structured match reports, team compositions, scores, and scorers.": {
+    fr: "Rapports structures, compositions, scores et buteurs.",
+    ar: "تقارير منظمة، تشكيلات الفرق، النتائج، والهدافون."
+  },
+  "Submit structured match reports after each game. Player selections and scorer counts will feed analytics later.": {
+    fr: "Soumettez des rapports structures apres chaque match. Les selections de joueurs et les buts alimenteront les analyses plus tard.",
+    ar: "أرسل تقارير منظمة بعد كل مباراة. اختيارات اللاعبين وعدد الأهداف ستغذي التحليلات لاحقا."
+  },
+  "Fluorescent team": { fr: "Equipe fluo", ar: "الفريق الفوسفوري" },
+  "Orange team": { fr: "Equipe orange", ar: "الفريق البرتقالي" },
+  "goals recorded": { fr: "buts enregistres", ar: "أهداف مسجلة" },
+  "Submit match report": { fr: "Soumettre le rapport", ar: "إرسال تقرير المباراة" },
   "Finished reservations move here automatically after their date and time pass. Update team compositions, score, winner, scorers, and notes.": {
     fr: "Les reservations terminees arrivent ici automatiquement apres leur date et heure. Mettez a jour les compositions, le score, le gagnant, les buteurs et les notes.",
     ar: "تنتقل الحجوزات المنتهية هنا تلقائيا بعد مرور التاريخ والوقت. حدّث التشكيلات، النتيجة، الفريق الفائز، الهدافين، والملاحظات."

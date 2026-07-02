@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { CalendarDays, CheckCircle2, Clock3, LogOut, MapPin, UserX } from "lucide-react";
-import { players } from "@/lib/data";
 import { useAttendance, playingLimit } from "@/hooks/use-attendance";
 import { useReservations } from "@/hooks/use-reservations";
 import { formatReservationDate, getNextReservation } from "@/lib/reservations";
@@ -22,14 +21,18 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
     summary,
     confirmedPlayers,
     waitingPlayers,
+    members,
+    reservationStatus,
+    canSubmitAttendance,
+    attendanceMessage,
     setStatus,
     dropOut
-  } = useAttendance(nextReservation?.id);
+  } = useAttendance(nextReservation?.id, nextReservation);
 
   if (!nextReservation) {
     return (
-      <div className="rounded-[20px] border border-white/15 bg-white/[.07] p-4 backdrop-blur-sm">
-        <p className="text-xs font-black uppercase tracking-[.08em] text-white/70">Next Game</p>
+      <div className="glass-panel rounded-[20px] p-4 text-slate-950">
+        <p className="text-xs font-extrabold uppercase tracking-[.08em] text-slate-600">Next Game</p>
         <p className="mt-4 text-sm text-orange-300">No reservation scheduled.</p>
         <Link href="/bookings" className="mt-4 flex h-11 items-center justify-center rounded-2xl bg-lime-300 font-black text-black">
           Add reservation
@@ -39,59 +42,64 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
   }
 
   return (
-    <div className="min-w-0 rounded-[20px] border border-white/15 bg-white/[.07] p-4 backdrop-blur-sm">
+    <div className="glass-panel min-w-0 rounded-[20px] p-4 text-slate-950">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-black uppercase tracking-[.08em] text-white/70">Next Game</p>
-        <span className="rounded-full bg-lime-300/15 px-3 py-1 text-[11px] font-black text-lime-300">Attendance</span>
+        <p className="text-xs font-extrabold uppercase tracking-[.08em] text-[#238923]">Attendance</p>
+        <span className={reservationStatus === "open" ? "rounded-full bg-lime-100 px-3 py-1 text-[11px] font-extrabold text-[#247e24]" : "rounded-full bg-white/65 px-3 py-1 text-[11px] font-extrabold text-slate-600"}>
+          {reservationStatus === "open" ? "Open" : reservationStatus === "completed" ? "Closed" : "Locked"}
+        </span>
       </div>
-      <p className="mt-2 text-xs leading-relaxed text-white/62">
-        First 10 members who choose attending are confirmed. Later signups join the waiting list automatically. No response means not attending.
+      <p className="mt-2 text-xs leading-relaxed text-slate-600">
+        {reservationStatus === "open"
+          ? "First 10 members who choose attending are confirmed. Later signups join the waiting list automatically. No response means not attending."
+          : attendanceMessage}
       </p>
 
       <div className="mt-4 flex items-center gap-3">
-        <CalendarDays className="h-7 w-7 text-white" />
+        <CalendarDays className="h-7 w-7 text-[#2f9e2f]" />
         <div>
-          <p className="text-sm text-white/72">{formatReservationDate(nextReservation.date)}</p>
-          <p className="text-xl font-black text-lime-300">{nextReservation.time}</p>
+          <p className="text-sm text-slate-600">{formatReservationDate(nextReservation.date)}</p>
+          <p className="text-xl font-extrabold text-slate-900">{nextReservation.time}</p>
         </div>
       </div>
 
-      <div className="mt-4 flex items-start gap-3 text-sm text-white/82">
-        <MapPin className="mt-1 h-6 w-6 text-white" />
-        <ReservationMapLink reservation={nextReservation} className="font-bold text-white/82" />
+      <div className="mt-4 flex items-start gap-3 text-sm text-slate-700">
+        <MapPin className="mt-1 h-6 w-6 text-[#2f9e2f]" />
+        <ReservationMapLink reservation={nextReservation} className="font-extrabold text-slate-700" />
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-black/10 p-2 text-center text-[11px]">
-        <span><b className="block text-lg text-lime-300">{summary.playing}</b>Attending</span>
+      <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-white/55 p-2 text-center text-[11px] text-slate-600">
+        <span><b className="block text-lg text-[#2f9e2f]">{summary.playing}</b>Attending</span>
         <span><b className="block text-lg text-amber-300">{summary.waiting}</b>Waiting</span>
-        <span><b className="block text-lg text-white">{summary.notAttending}</b>Not attending</span>
+        <span><b className="block text-lg text-red-500">{summary.notAttending}</b>Not attending</span>
       </div>
 
       {!compact && (
-        <label className="mt-4 block text-xs font-bold text-white/68">
+        <label className="mt-4 block text-xs font-bold text-slate-600">
           Member
           <select
             value={selectedPlayer}
             onChange={(event) => setSelectedPlayer(event.target.value)}
             disabled={profile.loggedIn}
-            className="mt-2 h-10 w-full rounded-2xl border border-white/15 bg-white/10 px-3 font-black text-white outline-none"
+            className="mt-2 h-10 w-full rounded-2xl border border-white/60 bg-white/72 px-3 font-semibold text-slate-900 outline-none"
           >
-            {players.map((player) => (
-              <option key={player.name} value={player.name} className="bg-[#08110b]">
+            {members.map((player) => (
+              <option key={player.name} value={player.name}>
                 {player.name}
               </option>
             ))}
           </select>
-          {profile.loggedIn && <span className="mt-2 block text-[11px] text-white/45">Controlled by your logged-in profile.</span>}
+          {profile.loggedIn && <span className="mt-2 block text-[11px] text-slate-500">Controlled by your logged-in profile.</span>}
         </label>
       )}
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button
           onClick={setStatus}
+          disabled={!canSubmitAttendance}
           className={cn(
-            "grid min-h-12 place-items-center rounded-2xl border border-white/10 px-2 text-[11px] font-black transition",
-            currentStatus === "playing" ? "bg-lime-300 text-black" : currentStatus === "waiting" ? "bg-amber-300 text-black" : "bg-white/[.06] text-white/78 hover:border-lime-300/45"
+            "grid min-h-12 place-items-center rounded-2xl border border-white/10 px-2 text-[11px] font-extrabold transition disabled:cursor-not-allowed disabled:opacity-55",
+            currentStatus === "playing" ? "bg-[#49b848] text-white" : currentStatus === "waiting" ? "bg-amber-300 text-black" : "bg-white/60 text-slate-700 hover:border-lime-500/45"
           )}
         >
           <CheckCircle2 className="h-4 w-4" />
@@ -99,52 +107,54 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
         </button>
         <button
           onClick={dropOut}
-          className="grid min-h-12 place-items-center rounded-2xl border border-white/10 bg-white/[.06] px-2 text-[11px] font-black text-white/78 transition hover:border-orange-300/55 hover:text-orange-200"
+          disabled={!canSubmitAttendance}
+          className="grid min-h-12 place-items-center rounded-2xl border border-white/60 bg-white/68 px-2 text-[11px] font-extrabold text-slate-700 transition hover:border-orange-300/70 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-55"
         >
           {currentStatus ? <LogOut className="h-4 w-4" /> : <UserX className="h-4 w-4" />}
           {currentStatus ? "Drop out" : "Not attending"}
         </button>
       </div>
 
-      <div className="mt-3 rounded-2xl border border-white/10 bg-white/[.05] p-3 text-xs text-white/72">
-        {currentStatus === "playing" && <span><b className="text-lime-300">Confirmed</b> spot #{selectedPosition}. Use Drop out if something comes up.</span>}
+      <div className="mt-3 rounded-2xl border border-white/60 bg-white/55 p-3 text-xs text-slate-600">
+        {currentStatus === "playing" && <span><b className="text-[#2f9e2f]">Confirmed</b> spot #{selectedPosition}. Use Drop out if something comes up.</span>}
         {currentStatus === "waiting" && <span><b className="text-amber-300">Waiting list</b> position #{selectedPosition}. You move up automatically if someone drops out.</span>}
-        {!currentStatus && <span><b className="text-white">Not attending</b> by default until you choose attending.</span>}
+        {!currentStatus && canSubmitAttendance && <span><b className="text-slate-950">Not attending</b> by default until you choose attending.</span>}
+        {!currentStatus && !canSubmitAttendance && <span><b className="text-slate-950">Attendance locked.</b> {attendanceMessage}</span>}
       </div>
 
       <div className="mt-4 grid gap-3">
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[.08em] text-white/58">
-            <CheckCircle2 className="h-4 w-4 text-lime-300" />
+          <div className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.08em] text-slate-500">
+            <CheckCircle2 className="h-4 w-4 text-[#2f9e2f]" />
             Confirmed {summary.playing}/{playingLimit}
           </div>
           <div className="flex flex-wrap gap-2">
             {confirmedPlayers.length ? (
               confirmedPlayers.map((record, index) => (
-                <span key={record.player} className="rounded-full bg-lime-300/15 px-3 py-1 text-xs font-black text-lime-200">
+                <span key={record.player} className="rounded-full bg-lime-100 px-3 py-1 text-xs font-extrabold text-[#247e24]">
                   {index + 1}. {record.player}
                 </span>
               ))
             ) : (
-              <span className="text-xs text-white/45">No confirmed players yet.</span>
+              <span className="text-xs text-slate-500">No confirmed players yet.</span>
             )}
           </div>
         </div>
 
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[.08em] text-white/58">
+          <div className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.08em] text-slate-500">
             <Clock3 className="h-4 w-4 text-amber-300" />
             Waiting list
           </div>
           <div className="flex flex-wrap gap-2">
             {waitingPlayers.length ? (
               waitingPlayers.map((record, index) => (
-                <span key={record.player} className="rounded-full bg-amber-300/15 px-3 py-1 text-xs font-black text-amber-200">
+                <span key={record.player} className="rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-700">
                   {index + 1}. {record.player}
                 </span>
               ))
             ) : (
-              <span className="text-xs text-white/45">Waiting list is empty.</span>
+              <span className="text-xs text-slate-500">Waiting list is empty.</span>
             )}
           </div>
         </div>

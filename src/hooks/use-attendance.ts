@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { players } from "@/lib/data";
 import { useLocalProfile } from "@/hooks/use-local-profile";
+import { useMembers } from "@/hooks/use-members";
+import { formatReservationOpenMessage, getSessionReservationStatus } from "@/lib/workflow-rules";
+import { type Reservation } from "@/lib/reservations";
 
 export type AttendanceStatus = "playing" | "waiting";
 
@@ -66,14 +68,22 @@ function promoteWaitingList(reservationAttendance: Record<string, AttendanceReco
   );
 }
 
-export function useAttendance(reservationId?: string) {
+export function useAttendance(reservationId?: string, reservation?: Reservation) {
   const { profile } = useLocalProfile();
-  const [selectedPlayer, setSelectedPlayer] = useState(players[0].name);
+  const { members } = useMembers();
+  const [selectedPlayer, setSelectedPlayer] = useState(members[0]?.name || "");
   const [attendance, setAttendance] = useState<AttendanceMap>({});
 
   useEffect(() => {
     if (profile.loggedIn) setSelectedPlayer(profile.playerName);
   }, [profile.loggedIn, profile.playerName]);
+
+  useEffect(() => {
+    if (!members.length) return;
+    if (!selectedPlayer || !members.some((member) => member.name === selectedPlayer)) {
+      setSelectedPlayer(members[0].name);
+    }
+  }, [members, selectedPlayer]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKey);
@@ -90,7 +100,10 @@ export function useAttendance(reservationId?: string) {
     window.localStorage.setItem(storageKey, JSON.stringify(attendance));
   }, [attendance]);
 
-  const reservationAttendance = reservationId ? attendance[reservationId] || {} : {};
+  const reservationAttendance = useMemo(
+    () => (reservationId ? attendance[reservationId] || {} : {}),
+    [attendance, reservationId]
+  );
 
   const summary = useMemo(() => {
     const values = Object.values(reservationAttendance);
@@ -98,9 +111,9 @@ export function useAttendance(reservationId?: string) {
     return {
       playing: values.filter((value) => value.status === "playing").length,
       waiting: values.filter((value) => value.status === "waiting").length,
-      notAttending: Math.max(players.length - values.filter((value) => value.status === "playing" || value.status === "waiting").length, 0)
+      notAttending: Math.max(members.length - values.filter((value) => value.status === "playing" || value.status === "waiting").length, 0)
     };
-  }, [reservationAttendance]);
+  }, [members.length, reservationAttendance]);
 
   const orderedAttendance = useMemo(
     () =>
@@ -114,6 +127,14 @@ export function useAttendance(reservationId?: string) {
   const waitingPlayers = orderedAttendance.filter((record) => record.status === "waiting");
   const selectedRecord = reservationId ? reservationAttendance[selectedPlayer] : undefined;
   const currentStatus = selectedRecord?.status;
+  const reservationStatus = reservation ? getSessionReservationStatus(reservation) : reservationId ? "open" : "closed";
+  const canSubmitAttendance = Boolean(reservationId && reservationStatus === "open");
+  const attendanceMessage =
+    reservation && reservationStatus === "closed"
+      ? formatReservationOpenMessage(reservation)
+      : reservationStatus === "completed"
+        ? "This session is completed."
+        : "";
   const selectedPosition =
     currentStatus === "playing"
       ? confirmedPlayers.findIndex((record) => record.player === selectedPlayer) + 1
@@ -122,7 +143,7 @@ export function useAttendance(reservationId?: string) {
         : 0;
 
   const setStatus = () => {
-    if (!reservationId) return;
+    if (!reservationId || !canSubmitAttendance) return;
 
     setAttendance((current) => {
       const reservationRecords = current[reservationId] || {};
@@ -152,7 +173,7 @@ export function useAttendance(reservationId?: string) {
   };
 
   const dropOut = () => {
-    if (!reservationId) return;
+    if (!reservationId || !canSubmitAttendance) return;
 
     setAttendance((current) => {
       const reservationRecords = { ...(current[reservationId] || {}) };
@@ -168,12 +189,16 @@ export function useAttendance(reservationId?: string) {
   return {
     selectedPlayer,
     setSelectedPlayer,
+    members,
     currentStatus,
     selectedPosition,
     summary,
     confirmedPlayers,
     waitingPlayers,
     playingLimit,
+    reservationStatus,
+    canSubmitAttendance,
+    attendanceMessage,
     setStatus,
     dropOut
   };

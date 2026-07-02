@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Save, ShieldCheck, Trophy } from "lucide-react";
+import { Plus, Save, Trash2, Trophy } from "lucide-react";
 import { PageHeading } from "@/components/page-heading";
 import { Card, SectionTitle } from "@/components/ui/card";
-import { players } from "@/lib/data";
 import { calculateQuantitativeScore, emptyRatingValues, ratingIndicators, type RatingValues } from "@/lib/ratings";
 import { useReservations } from "@/hooks/use-reservations";
 import { formatReservationDate } from "@/lib/reservations";
+import { useMembers } from "@/hooks/use-members";
+import { useRole } from "@/hooks/use-role";
+import { canManageMembers } from "@/lib/access";
 
 type PeerRatings = Record<string, Record<string, RatingValues>>;
 type MatchStats = {
@@ -26,8 +28,13 @@ const anonymousRaterKey = "korasmart-anonymous-rater-id";
 
 export function PlayersRatingsWorkspace() {
   const { reservations } = useReservations();
+  const { members, defaultCount, addedCount, removedCount, addMember, removeMember } = useMembers();
+  const { role } = useRole();
+  const canEditMembers = canManageMembers(role);
+  const [memberName, setMemberName] = useState("");
+  const [memberMessage, setMemberMessage] = useState("");
   const [anonymousRaterId, setAnonymousRaterId] = useState("anonymous-session");
-  const [target, setTarget] = useState(players[0].name);
+  const [target, setTarget] = useState(members[0]?.name || "");
   const [draft, setDraft] = useState<RatingValues>(emptyRatingValues);
   const [ratings, setRatings] = useState<PeerRatings>({});
   const [matchStats, setMatchStats] = useState<MatchStats>({
@@ -35,10 +42,24 @@ export function PlayersRatingsWorkspace() {
     fluorescentScore: 0,
     orangeScore: 0,
     winner: "draw",
-    mvp: players[0].name,
+    mvp: members[0]?.name || "",
     notes: "",
-    scorers: Object.fromEntries(players.map((player) => [player.name, 0]))
+    scorers: Object.fromEntries(members.map((player) => [player.name, 0]))
   });
+
+  useEffect(() => {
+    if (!members.length) return;
+
+    if (!target || !members.some((member) => member.name === target)) {
+      setTarget(members[0].name);
+    }
+
+    setMatchStats((current) => ({
+      ...current,
+      mvp: current.mvp && members.some((member) => member.name === current.mvp) ? current.mvp : members[0].name,
+      scorers: Object.fromEntries(members.map((member) => [member.name, current.scorers[member.name] || 0]))
+    }));
+  }, [members, target]);
 
   useEffect(() => {
     const savedAnonymousId = window.localStorage.getItem(anonymousRaterKey);
@@ -70,7 +91,7 @@ export function PlayersRatingsWorkspace() {
 
   const playerScores = useMemo(
     () =>
-      players.map((player) => {
+      members.map((player) => {
         const receivedRatings = Object.values(ratings)
           .map((raterRatings) => raterRatings[player.name])
           .filter(Boolean);
@@ -82,13 +103,15 @@ export function PlayersRatingsWorkspace() {
           submissions: receivedRatings.length
         };
       }),
-    [ratings]
+    [members, ratings]
   );
 
   const currentRaterSubmissions = Object.keys(ratings[anonymousRaterId] || {}).length;
   const existingRating = ratings[anonymousRaterId]?.[target];
 
   const saveRating = () => {
+    if (!target) return;
+
     setRatings((current) => ({
       ...current,
       [anonymousRaterId]: {
@@ -108,12 +131,77 @@ export function PlayersRatingsWorkspace() {
     }));
   };
 
+  const handleAddMember = () => {
+    if (!canEditMembers) return;
+    const result = addMember(memberName);
+    setMemberMessage(result.message);
+    if (result.ok) setMemberName("");
+  };
+
   return (
     <>
       <PageHeading
         title="Players Details"
         subtitle="Peer ratings, quantitative player scores, and post-game stats for fair team generation."
       />
+
+      <Card className="mb-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <SectionTitle>Club Members</SectionTitle>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Add or remove members from this device. The active roster feeds attendance, ratings, and game stat entry.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs font-extrabold text-slate-600">
+              <span className="rounded-full bg-white/65 px-3 py-1">{members.length} active</span>
+              <span className="rounded-full bg-white/65 px-3 py-1">{defaultCount} default</span>
+              <span className="rounded-full bg-lime-100 px-3 py-1 text-[#247e24]">{addedCount} added</span>
+              <span className="rounded-full bg-orange-100 px-3 py-1 text-orange-700">{removedCount} removed</span>
+            </div>
+          </div>
+
+          {canEditMembers ? <div className="w-full max-w-md">
+            <div className="flex gap-2">
+              <input
+                value={memberName}
+                onChange={(event) => setMemberName(event.target.value)}
+                onKeyDown={(event) => event.key === "Enter" && handleAddMember()}
+                placeholder="Member name"
+                className="h-11 min-w-0 flex-1 rounded-2xl border border-white/70 bg-white/70 px-4 text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400"
+              />
+              <button onClick={handleAddMember} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#3dad3d] px-4 text-sm font-extrabold text-white">
+                <Plus className="h-4 w-4" />
+                Add
+              </button>
+            </div>
+            {memberMessage && <p className="mt-2 text-xs font-semibold text-slate-500">{memberMessage}</p>}
+          </div> : (
+            <p className="rounded-2xl border border-white/60 bg-white/55 px-4 py-3 text-sm font-semibold text-slate-600">
+              Admin access is required to add or remove members.
+            </p>
+          )}
+        </div>
+
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {members.map((member) => (
+            <div key={member.name} className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/58 p-3">
+              <div className="min-w-0">
+                <p className="truncate font-extrabold text-slate-900">{member.name}</p>
+                <p className="text-xs font-medium text-slate-500">{member.position}</p>
+              </div>
+              {canEditMembers && (
+                <button
+                  onClick={() => removeMember(member.name)}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-orange-200 bg-orange-50 text-orange-700 transition hover:bg-orange-100"
+                  title={`Remove ${member.name}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <div className="grid gap-5 xl:grid-cols-[1fr_.9fr]">
         <Card>
@@ -123,7 +211,7 @@ export function PlayersRatingsWorkspace() {
               <p className="mt-2 text-sm text-white/65">Ratings are anonymous. Score each player from 1 to 5, where 5 is strongest and 1 is weakest.</p>
             </div>
             <div className="rounded-2xl bg-lime-300/10 px-4 py-3 text-sm font-black text-lime-300">
-              {currentRaterSubmissions}/{players.length - 1} completed
+              {currentRaterSubmissions}/{Math.max(members.length - 1, 0)} completed
             </div>
           </div>
 
@@ -135,7 +223,7 @@ export function PlayersRatingsWorkspace() {
             <label className="text-sm font-bold text-white/70">
               Player to rate
               <select value={target} onChange={(event) => setTarget(event.target.value)} className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-4 font-black text-white outline-none">
-                {players.map((player) => <option key={player.name} className="bg-[#08110b]">{player.name}</option>)}
+                {members.map((player) => <option key={player.name}>{player.name}</option>)}
               </select>
             </label>
           </div>
@@ -224,7 +312,7 @@ export function PlayersRatingsWorkspace() {
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {players.map((player) => (
+          {members.map((player) => (
             <label key={player.name} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.06] p-3">
               <span className="flex-1 font-black">{player.name}</span>
               <input type="number" min="0" value={matchStats.scorers[player.name] || 0} onChange={(event) => updateMatchScorer(player.name, Number(event.target.value))} className="h-10 w-16 rounded-2xl border border-white/15 bg-black/15 text-center font-black text-lime-300 outline-none" />
@@ -236,7 +324,7 @@ export function PlayersRatingsWorkspace() {
           <label className="text-sm font-bold text-white/70">
             MVP
             <select value={matchStats.mvp} onChange={(event) => setMatchStats((current) => ({ ...current, mvp: event.target.value }))} className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-4 font-black text-white outline-none">
-              {players.map((player) => <option key={player.name} className="bg-[#08110b]">{player.name}</option>)}
+              {members.map((player) => <option key={player.name}>{player.name}</option>)}
             </select>
           </label>
           <label className="text-sm font-bold text-white/70">
