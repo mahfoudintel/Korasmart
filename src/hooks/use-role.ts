@@ -1,17 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { normalizeRole, type UserRole } from "@/lib/access";
-
-const storageKey = "korasmart-current-role-v1";
+import { getRoleForPlayer } from "@/lib/access";
+import { useLocalProfile } from "@/hooks/use-local-profile";
 
 export function useRole() {
-  const [role, setRoleState] = useState<UserRole>("admin");
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(storageKey);
-    setRoleState(normalizeRole(saved));
-  }, []);
+  const { profile } = useLocalProfile();
+  const role = profile.loggedIn ? getRoleForPlayer(profile.playerName) : "player";
 
   return { role };
 }

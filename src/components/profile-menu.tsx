@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { Camera, ChevronDown, LogIn, LogOut, Save } from "lucide-react";
+import { roleLabels } from "@/lib/access";
 import { useLocalProfile } from "@/hooks/use-local-profile";
+import { useRole } from "@/hooks/use-role";
 
 const avatarPresets = Array.from({ length: 20 }, (_, index) => `/images/avatars/avatar-${String(index + 1).padStart(2, "0")}.png`);
 
@@ -13,6 +15,7 @@ export function ProfileMenu() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const { profile, updateProfile, loginWithCredentials, logout } = useLocalProfile();
+  const { role } = useRole();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleAvatarUpload = (file?: File) => {
@@ -55,7 +58,7 @@ export function ProfileMenu() {
         </span>
         <span className="hidden leading-tight sm:block">
           <span className="block max-w-28 truncate text-sm font-black">{profile.loggedIn ? profile.displayName : "Logged out"}</span>
-          <span className="block text-xs text-slate-500">{profile.loggedIn ? "Local profile" : "Tap to login"}</span>
+          <span className="block text-xs text-slate-500">{profile.loggedIn ? roleLabels[role] : "Tap to login"}</span>
         </span>
         <ChevronDown className="hidden h-4 w-4 text-slate-600 sm:block" />
       </button>
@@ -131,9 +134,9 @@ export function ProfileMenu() {
                 </div>
 
                 <div className="rounded-2xl border border-white/60 bg-white/50 p-3">
-                  <p className="text-xs font-bold text-slate-600">Player</p>
-                  <p className="mt-1 font-black text-slate-950">{profile.playerName}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-500">Assigned to this login.</p>
+              <p className="text-xs font-bold text-slate-600">Player</p>
+              <p className="mt-1 font-black text-slate-950">{profile.playerName}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">Access: {roleLabels[role]}</p>
                 </div>
 
                 <label className="text-xs font-bold text-slate-600">

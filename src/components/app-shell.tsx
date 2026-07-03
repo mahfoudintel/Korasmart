@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { navItems } from "@/lib/data";
+import { canManageRoles } from "@/lib/access";
+import { useRole } from "@/hooks/use-role";
 import { cn } from "@/lib/utils";
 import { FootballLogo } from "@/components/football-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -15,7 +17,9 @@ import { ChatDock } from "@/components/chat-dock";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const mobileItems = navItems;
+  const { role } = useRole();
+  const visibleNavItems = navItems.filter((item) => item.href !== "/admin" || canManageRoles(role));
+  const mobileItems = visibleNavItems;
   const routeGroup =
     pathname === "/bookings" || pathname === "/calendar" || pathname === "/past-games"
       ? "/matches"
@@ -48,7 +52,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <aside className="sticky top-0 hidden h-screen w-[250px] shrink-0 flex-col overflow-hidden bg-[#061827]/95 px-5 py-7 text-white shadow-[18px_0_48px_rgba(1,13,25,.25)] backdrop-blur-[22px] lg:flex">
           <FootballLogo inverse />
           <nav className="mt-10 flex flex-1 flex-col gap-2">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const active = routeGroup === item.href;
               const Icon = item.icon;
               return (
@@ -104,7 +108,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </main>
 
         <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-white/50 bg-white/78 px-3 py-2 shadow-[0_-12px_34px_rgba(38,59,28,.13)] backdrop-blur-[18px] lg:hidden">
-          <div className="mx-auto grid max-w-lg grid-cols-6 gap-1">
+          <div className={cn("mx-auto grid max-w-lg gap-1", canManageRoles(role) ? "grid-cols-6" : "grid-cols-5")}>
             {mobileItems.map((item) => {
               const active = routeGroup === item.href;
               const Icon = item.icon;

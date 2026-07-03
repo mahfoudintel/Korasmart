@@ -13,6 +13,12 @@ export function normalizeRole(role: UserRole | LegacyUserRole | string | null | 
   return "player";
 }
 
+export const adminPlayers = new Set(["Najib", "Nawfal"]);
+
+export function getRoleForPlayer(playerName: string | null | undefined): UserRole {
+  return playerName && adminPlayers.has(playerName) ? "admin" : "player";
+}
+
 export const canManageFinances = (role: UserRole) => role === "admin" || role === "budgeting_booking_officer";
 export const canManageSchedule = (role: UserRole) => role === "admin" || role === "budgeting_booking_officer";
 export const canManageMembers = (role: UserRole) => role === "admin";
