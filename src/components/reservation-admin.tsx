@@ -54,7 +54,7 @@ export function ReservationAdmin() {
           <Card>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <SectionTitle>Upcoming Schedule</SectionTitle>
+                <SectionTitle>Upcoming Matches</SectionTitle>
                 <p className="mt-2 text-sm leading-6 text-slate-600">Next games with only what members need: date, time, and location.</p>
               </div>
               <span className="rounded-full bg-lime-100 px-3 py-1 text-xs font-extrabold text-[#247e24]">

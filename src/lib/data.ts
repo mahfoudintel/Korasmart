@@ -1,21 +1,20 @@
 import {
-  BarChart3,
   CalendarDays,
   Home,
-  Medal,
+  LineChart,
   Shield,
-  Trophy,
+  Settings,
   Users,
   WalletCards
 } from "lucide-react";
 
 export const navItems = [
   { label: "Home", mobileLabel: "Home", href: "/", icon: Home },
-  { label: "Analytics", mobileLabel: "Stats", href: "/analytics", icon: BarChart3 },
+  { label: "Matches", mobileLabel: "Matches", href: "/matches", icon: CalendarDays },
+  { label: "Members", mobileLabel: "Members", href: "/members", icon: Users },
   { label: "Finances", mobileLabel: "Money", href: "/finances", icon: WalletCards },
-  { label: "Schedule", mobileLabel: "Dates", href: "/bookings", icon: CalendarDays },
-  { label: "Game Statistics", mobileLabel: "Stats", href: "/past-games", icon: Trophy },
-  { label: "Players Details", mobileLabel: "Players", href: "/players", icon: Users }
+  { label: "Insights", mobileLabel: "Insights", href: "/insights", icon: LineChart },
+  { label: "Admin", mobileLabel: "Admin", href: "/admin", icon: Settings }
 ];
 
 export const players = [
@@ -42,7 +41,7 @@ export const orangeTeam = players.slice(8, 16);
 
 export const statHighlights = [
   { label: "Ratings status", value: "Pending", meta: "Awaiting peer scores", icon: Shield },
-  { label: "Match stats", value: "Empty", meta: "No official game entered", icon: Medal },
+  { label: "Match stats", value: "Empty", meta: "No official game entered", icon: Shield },
   { label: "Attendance", value: "Live", meta: "Based on member responses", icon: Users },
-  { label: "Team balance", value: "Ready", meta: "Will use quantitative scores", icon: BarChart3 }
+  { label: "Team balance", value: "Ready", meta: "Will use quantitative scores", icon: LineChart }
 ];

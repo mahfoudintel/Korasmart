@@ -141,8 +141,8 @@ export function PlayersRatingsWorkspace() {
   return (
     <>
       <PageHeading
-        title="Players Details"
-        subtitle="Peer ratings, quantitative player scores, and post-game stats for fair team generation."
+        title="Members"
+        subtitle="Roster, roles, availability, and anonymous peer assessment."
       />
 
       <Card className="mb-5">

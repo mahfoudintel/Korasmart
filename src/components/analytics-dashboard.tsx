@@ -86,8 +86,8 @@ export function AnalyticsDashboard() {
   return (
     <div className="space-y-6">
       <div className="lg:hidden">
-        <h1 className="text-3xl font-black text-white">Analytics Hub</h1>
-        <p className="mt-2 text-white/76">Ratings, team balance, attendance, and game stats in one place.</p>
+        <h1 className="text-3xl font-black text-white">Insights</h1>
+        <p className="mt-2 text-white/76">Useful trends for attendance, ratings, and match rhythm.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -101,7 +101,7 @@ export function AnalyticsDashboard() {
         <Card>
           <div className="flex items-center justify-between gap-4">
             <SectionTitle>Player Quantitative Scores</SectionTitle>
-            <Link href="/players" className="text-sm font-black text-lime-300">Open ratings</Link>
+            <Link href="/members" className="text-sm font-black text-lime-300">Open ratings</Link>
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             {playerScores.slice(0, 8).map((item, index) => (
