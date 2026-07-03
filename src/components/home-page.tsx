@@ -167,7 +167,7 @@ export function HomePage() {
           <p className="text-sm text-slate-500">Current balance</p>
           <p className="mt-2 text-2xl font-black text-[#168332]">{formatDh(currentBalance)}</p>
         </StatusCard>
-        <StatusCard icon={Users} title="Your Status" href="/members" action="View profile">
+        <StatusCard icon={Users} title="Your Status" href="/players" action="View profile">
           <p className="flex items-center gap-2 text-sm font-black text-[#168332]"><CheckCircle2 className="h-5 w-5" /> {currentStatus === "playing" ? "Confirmed" : currentStatus === "waiting" ? "Waiting" : "Not set"}</p>
           <p className="mt-5 text-center font-black text-[#168332]">{currentStatus === "playing" ? "Team A" : "—"}</p>
         </StatusCard>

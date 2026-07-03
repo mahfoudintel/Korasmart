@@ -101,7 +101,7 @@ export function AnalyticsDashboard() {
         <Card>
           <div className="flex items-center justify-between gap-4">
             <SectionTitle>Player Quantitative Scores</SectionTitle>
-            <Link href="/members" className="text-sm font-black text-lime-300">Open ratings</Link>
+            <Link href="/players" className="text-sm font-black text-lime-300">Open ratings</Link>
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             {playerScores.slice(0, 8).map((item, index) => (
@@ -110,7 +110,7 @@ export function AnalyticsDashboard() {
                 <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-sm font-black text-black">{item.player[0]}</span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-black">{item.player}</p>
-                  <p className="text-xs text-white/55">{item.submissions} member ratings</p>
+                  <p className="text-xs text-white/55">{item.submissions} player ratings</p>
                 </div>
                 <span className="text-2xl font-black text-lime-300">{item.score ?? "-"}</span>
               </div>
@@ -118,7 +118,7 @@ export function AnalyticsDashboard() {
           </div>
           {submittedRatings === 0 && (
             <div className="mt-5 rounded-2xl border border-lime-300/20 bg-lime-300/10 p-4 text-sm text-white/72">
-              Scores are empty until members rate each other. This is intentional: no fake player strength data on the analytics dashboard.
+              Scores are empty until players rate each other. This is intentional: no fake player strength data on the insights dashboard.
             </div>
           )}
         </Card>

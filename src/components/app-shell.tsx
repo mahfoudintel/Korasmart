@@ -19,8 +19,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const routeGroup =
     pathname === "/bookings" || pathname === "/calendar" || pathname === "/past-games"
       ? "/matches"
-      : pathname === "/players" || pathname === "/games" || pathname === "/rankings"
-        ? "/members"
+      : pathname === "/players" || pathname === "/members" || pathname === "/games" || pathname === "/rankings"
+        ? "/players"
         : pathname === "/analytics" || pathname === "/stats"
           ? "/insights"
           : pathname === "/settings"
@@ -32,11 +32,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       : routeGroup === "/insights"
         ? { title: "Insights", subtitle: "Reliability, attendance, payments, and player trends." }
       : pathname === "/finances"
-        ? { title: "Finances", subtitle: "Balance, booking costs, contributions, and unpaid members." }
+        ? { title: "Finances", subtitle: "Balance, booking costs, contributions, and unpaid players." }
         : routeGroup === "/matches"
           ? { title: "Matches", subtitle: "Schedule, attendance, teams, and match history." }
-          : routeGroup === "/members"
-            ? { title: "Members", subtitle: "Roster, roles, availability, and peer assessment." }
+          : routeGroup === "/players"
+            ? { title: "Players", subtitle: "Roster, availability, and peer assessment." }
             : routeGroup === "/admin"
               ? { title: "Admin", subtitle: "Roles, permissions, notifications, and app settings." }
               : { title: "KoraSmart", subtitle: "One team. One dream." };

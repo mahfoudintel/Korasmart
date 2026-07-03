@@ -50,8 +50,8 @@ export function ReservationAdmin() {
   return (
     <div className="space-y-5">
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="space-y-5">
-          <Card>
+        <div className="flex flex-col gap-5">
+          <Card className="order-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <SectionTitle>Upcoming Matches</SectionTitle>
@@ -90,7 +90,7 @@ export function ReservationAdmin() {
             </div>
           </Card>
 
-          <Card>
+          <Card className="order-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <SectionTitle>Past Games</SectionTitle>
               <span className="rounded-full bg-white/65 px-3 py-1 text-xs font-extrabold text-slate-500">
@@ -125,7 +125,7 @@ export function ReservationAdmin() {
             </div>
           </Card>
 
-          <Card>
+          <Card className="order-1">
             <SectionTitle>Next Reservation</SectionTitle>
             {nextReservation ? (
               <div className="mt-5 rounded-2xl border border-white/60 bg-lime-50/70 p-5">

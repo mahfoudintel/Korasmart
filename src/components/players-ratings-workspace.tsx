@@ -1,33 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Save, Trash2, Trophy } from "lucide-react";
-import { PageHeading } from "@/components/page-heading";
+import { Plus, Save, Trash2 } from "lucide-react";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { calculateQuantitativeScore, emptyRatingValues, ratingIndicators, type RatingValues } from "@/lib/ratings";
-import { useReservations } from "@/hooks/use-reservations";
-import { formatReservationDate } from "@/lib/reservations";
 import { useMembers } from "@/hooks/use-members";
 import { useRole } from "@/hooks/use-role";
 import { canManageMembers } from "@/lib/access";
 
 type PeerRatings = Record<string, Record<string, RatingValues>>;
-type MatchStats = {
-  reservationId: string;
-  fluorescentScore: number;
-  orangeScore: number;
-  winner: "fluorescent" | "orange" | "draw";
-  mvp: string;
-  notes: string;
-  scorers: Record<string, number>;
-};
-
 const ratingsStorageKey = "korasmart-peer-ratings-v1";
-const matchStatsStorageKey = "korasmart-match-stats-v1";
 const anonymousRaterKey = "korasmart-anonymous-rater-id";
 
 export function PlayersRatingsWorkspace() {
-  const { reservations } = useReservations();
   const { members, defaultCount, addedCount, removedCount, addMember, removeMember } = useMembers();
   const { role } = useRole();
   const canEditMembers = canManageMembers(role);
@@ -37,28 +22,12 @@ export function PlayersRatingsWorkspace() {
   const [target, setTarget] = useState(members[0]?.name || "");
   const [draft, setDraft] = useState<RatingValues>(emptyRatingValues);
   const [ratings, setRatings] = useState<PeerRatings>({});
-  const [matchStats, setMatchStats] = useState<MatchStats>({
-    reservationId: reservations[0]?.id || "",
-    fluorescentScore: 0,
-    orangeScore: 0,
-    winner: "draw",
-    mvp: members[0]?.name || "",
-    notes: "",
-    scorers: Object.fromEntries(members.map((player) => [player.name, 0]))
-  });
-
   useEffect(() => {
     if (!members.length) return;
 
     if (!target || !members.some((member) => member.name === target)) {
       setTarget(members[0].name);
     }
-
-    setMatchStats((current) => ({
-      ...current,
-      mvp: current.mvp && members.some((member) => member.name === current.mvp) ? current.mvp : members[0].name,
-      scorers: Object.fromEntries(members.map((member) => [member.name, current.scorers[member.name] || 0]))
-    }));
   }, [members, target]);
 
   useEffect(() => {
@@ -75,19 +44,13 @@ export function PlayersRatingsWorkspace() {
     }
 
     const savedRatings = window.localStorage.getItem(ratingsStorageKey);
-    const savedStats = window.localStorage.getItem(matchStatsStorageKey);
 
     if (savedRatings) setRatings(JSON.parse(savedRatings) as PeerRatings);
-    if (savedStats) setMatchStats(JSON.parse(savedStats) as MatchStats);
   }, []);
 
   useEffect(() => {
     window.localStorage.setItem(ratingsStorageKey, JSON.stringify(ratings));
   }, [ratings]);
-
-  useEffect(() => {
-    window.localStorage.setItem(matchStatsStorageKey, JSON.stringify(matchStats));
-  }, [matchStats]);
 
   const playerScores = useMemo(
     () =>
@@ -121,16 +84,6 @@ export function PlayersRatingsWorkspace() {
     }));
   };
 
-  const updateMatchScorer = (player: string, goals: number) => {
-    setMatchStats((current) => ({
-      ...current,
-      scorers: {
-        ...current.scorers,
-        [player]: Math.max(0, goals)
-      }
-    }));
-  };
-
   const handleAddMember = () => {
     if (!canEditMembers) return;
     const result = addMember(memberName);
@@ -140,17 +93,12 @@ export function PlayersRatingsWorkspace() {
 
   return (
     <>
-      <PageHeading
-        title="Members"
-        subtitle="Roster, roles, availability, and anonymous peer assessment."
-      />
-
       <Card className="mb-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <SectionTitle>Club Members</SectionTitle>
+            <SectionTitle>Player Roster</SectionTitle>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Add or remove members from this device. The active roster feeds attendance, ratings, and game stat entry.
+              The active player list feeds attendance, team generation, and ratings.
             </p>
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-extrabold text-slate-600">
               <span className="rounded-full bg-white/65 px-3 py-1">{members.length} active</span>
@@ -166,7 +114,7 @@ export function PlayersRatingsWorkspace() {
                 value={memberName}
                 onChange={(event) => setMemberName(event.target.value)}
                 onKeyDown={(event) => event.key === "Enter" && handleAddMember()}
-                placeholder="Member name"
+                placeholder="Player name"
                 className="h-11 min-w-0 flex-1 rounded-2xl border border-white/70 bg-white/70 px-4 text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400"
               />
               <button onClick={handleAddMember} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#3dad3d] px-4 text-sm font-extrabold text-white">
@@ -177,7 +125,7 @@ export function PlayersRatingsWorkspace() {
             {memberMessage && <p className="mt-2 text-xs font-semibold text-slate-500">{memberMessage}</p>}
           </div> : (
             <p className="rounded-2xl border border-white/60 bg-white/55 px-4 py-3 text-sm font-semibold text-slate-600">
-              Admin access is required to add or remove members.
+              Admin access is required to add or remove players.
             </p>
           )}
         </div>
@@ -187,7 +135,7 @@ export function PlayersRatingsWorkspace() {
             <div key={member.name} className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/58 p-3">
               <div className="min-w-0">
                 <p className="truncate font-extrabold text-slate-900">{member.name}</p>
-                <p className="text-xs font-medium text-slate-500">{member.position}</p>
+                <p className="text-xs font-medium text-slate-500">Player</p>
               </div>
               {canEditMembers && (
                 <button
@@ -207,8 +155,8 @@ export function PlayersRatingsWorkspace() {
         <Card>
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <SectionTitle>One-time peer ratings</SectionTitle>
-              <p className="mt-2 text-sm text-white/65">Ratings are anonymous. Score each player from 1 to 5, where 5 is strongest and 1 is weakest.</p>
+              <SectionTitle>Player Ratings</SectionTitle>
+              <p className="mt-2 text-sm text-white/65">Anonymous 1-5 ratings help balance teams.</p>
             </div>
             <div className="rounded-2xl bg-lime-300/10 px-4 py-3 text-sm font-black text-lime-300">
               {currentRaterSubmissions}/{Math.max(members.length - 1, 0)} completed
@@ -218,7 +166,7 @@ export function PlayersRatingsWorkspace() {
           <div className="mt-5 grid gap-3 md:grid-cols-[1fr_1.2fr]">
             <div className="rounded-2xl border border-lime-300/20 bg-lime-300/10 p-4">
               <p className="text-xs font-black uppercase text-lime-300">Anonymous rating</p>
-              <p className="mt-2 text-sm text-white/70">Your identity is not shown in the app. One local anonymous session can update its own saved ratings.</p>
+              <p className="mt-2 text-sm text-white/70">Pick a player, rate key skills, then save.</p>
             </div>
             <label className="text-sm font-bold text-white/70">
               Player to rate
@@ -259,7 +207,7 @@ export function PlayersRatingsWorkspace() {
         </Card>
 
         <Card>
-          <SectionTitle>Quantitative player scores</SectionTitle>
+          <SectionTitle>Rating Summary</SectionTitle>
           <div className="mt-5 space-y-3">
             {playerScores.map((item) => (
               <div key={item.player} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.06] p-3">
@@ -272,67 +220,6 @@ export function PlayersRatingsWorkspace() {
           </div>
         </Card>
       </div>
-
-      <Card className="mt-5">
-        <div className="flex items-center gap-3">
-          <Trophy className="h-7 w-7 text-lime-300" />
-          <div>
-            <SectionTitle>Game stats entry</SectionTitle>
-            <p className="mt-1 text-sm text-white/65">After each game, record winner, score, scorers, MVP, and notes.</p>
-          </div>
-        </div>
-
-        <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_220px_220px_220px]">
-          <label className="text-sm font-bold text-white/70">
-            Game reservation
-            <select value={matchStats.reservationId} onChange={(event) => setMatchStats((current) => ({ ...current, reservationId: event.target.value }))} className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-4 font-black text-white outline-none">
-              {reservations.map((reservation) => (
-                <option key={reservation.id} value={reservation.id} className="bg-[#08110b]">
-                  {formatReservationDate(reservation.date)} - {reservation.time}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm font-bold text-white/70">
-            Fluorescent score
-            <input type="number" min="0" value={matchStats.fluorescentScore} onChange={(event) => setMatchStats((current) => ({ ...current, fluorescentScore: Number(event.target.value) }))} className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-4 text-center font-black text-white outline-none" />
-          </label>
-          <label className="text-sm font-bold text-white/70">
-            Orange score
-            <input type="number" min="0" value={matchStats.orangeScore} onChange={(event) => setMatchStats((current) => ({ ...current, orangeScore: Number(event.target.value) }))} className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-4 text-center font-black text-white outline-none" />
-          </label>
-          <label className="text-sm font-bold text-white/70">
-            Winner
-            <select value={matchStats.winner} onChange={(event) => setMatchStats((current) => ({ ...current, winner: event.target.value as MatchStats["winner"] }))} className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-4 font-black text-white outline-none">
-              <option value="draw" className="bg-[#08110b]">Draw</option>
-              <option value="fluorescent" className="bg-[#08110b]">Fluorescent</option>
-              <option value="orange" className="bg-[#08110b]">Orange</option>
-            </select>
-          </label>
-        </div>
-
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {members.map((player) => (
-            <label key={player.name} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.06] p-3">
-              <span className="flex-1 font-black">{player.name}</span>
-              <input type="number" min="0" value={matchStats.scorers[player.name] || 0} onChange={(event) => updateMatchScorer(player.name, Number(event.target.value))} className="h-10 w-16 rounded-2xl border border-white/15 bg-black/15 text-center font-black text-lime-300 outline-none" />
-            </label>
-          ))}
-        </div>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-[240px_1fr]">
-          <label className="text-sm font-bold text-white/70">
-            MVP
-            <select value={matchStats.mvp} onChange={(event) => setMatchStats((current) => ({ ...current, mvp: event.target.value }))} className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-4 font-black text-white outline-none">
-              {members.map((player) => <option key={player.name}>{player.name}</option>)}
-            </select>
-          </label>
-          <label className="text-sm font-bold text-white/70">
-            Notes
-            <input value={matchStats.notes} onChange={(event) => setMatchStats((current) => ({ ...current, notes: event.target.value }))} className="mt-2 h-11 w-full rounded-2xl border border-white/15 bg-white/10 px-4 font-black text-white outline-none" placeholder="Injuries, comments, special events..." />
-          </label>
-        </div>
-      </Card>
     </>
   );
 }

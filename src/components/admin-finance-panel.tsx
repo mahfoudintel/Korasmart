@@ -7,12 +7,16 @@ import { financeSnapshot, formatDh } from "@/lib/finance";
 import { useRole } from "@/hooks/use-role";
 import { useMembers } from "@/hooks/use-members";
 import { useFinanceTransactions } from "@/hooks/use-finance-transactions";
-import { bookingCurrencyLabel } from "@/lib/workflow-rules";
+import { useReservations } from "@/hooks/use-reservations";
+import { formatReservationDate } from "@/lib/reservations";
+import { bookingCostAmount, bookingCurrencyLabel } from "@/lib/workflow-rules";
 import { Card, SectionTitle } from "@/components/ui/card";
 
 type Contribution = {
   player: string;
   amount: number;
+  lastAmount?: number;
+  lastDate?: string;
 };
 
 const storageKey = "korasmart-finance-admin-v1";
@@ -20,6 +24,7 @@ const storageKey = "korasmart-finance-admin-v1";
 export function AdminFinancePanel() {
   const { role } = useRole();
   const { members } = useMembers();
+  const { reservations } = useReservations();
   const { transactions, transactionTotal } = useFinanceTransactions();
   const canEdit = canEditFinance(role);
   const [adminMode, setAdminMode] = useState(false);
@@ -41,7 +46,15 @@ export function AdminFinancePanel() {
       };
       if (typeof parsed.balance === "number") setBalance(parsed.balance);
       if (parsed.reservedUntil) setReservedUntil(parsed.reservedUntil);
-      if (Array.isArray(parsed.contributions)) setContributions(parsed.contributions);
+      if (Array.isArray(parsed.contributions)) {
+        setContributions(
+          parsed.contributions.map((contribution) => ({
+            ...contribution,
+            lastAmount: contribution.lastAmount ?? contribution.amount,
+            lastDate: contribution.lastDate
+          }))
+        );
+      }
     } catch {
       window.localStorage.removeItem(storageKey);
     }
@@ -60,10 +73,15 @@ export function AdminFinancePanel() {
   const unpaidPlayers = members.filter((player) => !paidPlayers.has(player.name));
   const activeContributions = useMemo(
     () =>
-      members.map((member) => ({
-        player: member.name,
-        amount: contributions.find((contribution) => contribution.player === member.name)?.amount || 0
-      })),
+      members.map((member) => {
+        const contribution = contributions.find((item) => item.player === member.name);
+        return {
+          player: member.name,
+          amount: contribution?.amount || 0,
+          lastAmount: contribution?.lastAmount ?? contribution?.amount ?? 0,
+          lastDate: contribution?.lastDate || ""
+        };
+      }),
     [contributions, members]
   );
   const filteredContributions = activeContributions.filter((contribution) =>
@@ -79,13 +97,56 @@ export function AdminFinancePanel() {
   const amountRate = expectedTotal ? Math.min(Math.round((totalReceived / expectedTotal) * 100), 100) : 0;
   const adjustedBalance = balance + transactionTotal;
   const neededToZero = Math.max(Math.abs(Math.min(adjustedBalance, 0)), 0);
+  const openingBalance = balance - totalReceived;
+  const bookingRows = transactions.map((transaction) => {
+    const reservation = transaction.bookingId ? reservations.find((item) => item.id === transaction.bookingId) : undefined;
+    return {
+      ...transaction,
+      label: reservation ? `${formatReservationDate(reservation.date)} • ${reservation.time} • ${reservation.venue}` : transaction.note
+    };
+  });
+  const accountRows = [
+    {
+      id: "opening-balance",
+      date: "Opening",
+      description: "Opening caisse balance",
+      type: "Opening",
+      in: openingBalance > 0 ? openingBalance : 0,
+      out: openingBalance < 0 ? Math.abs(openingBalance) : 0,
+      net: openingBalance
+    },
+    {
+      id: "contributions-total",
+      date: "Current",
+      description: "Player contributions received",
+      type: "Contribution",
+      in: totalReceived,
+      out: 0,
+      net: totalReceived
+    },
+    ...bookingRows.map((transaction) => ({
+      id: transaction.id,
+      date: new Date(transaction.createdAt).toLocaleDateString("fr-FR"),
+      description: transaction.label,
+      type: transaction.type === "booking_cost_reversal" ? "Booking reversal" : "Booking cost",
+      in: transaction.amount > 0 ? transaction.amount : 0,
+      out: transaction.amount < 0 ? Math.abs(transaction.amount) : 0,
+      net: transaction.amount
+    }))
+  ];
 
   const updateContribution = (player: string, amount: number) => {
-    setContributions((current) =>
-      current.some((contribution) => contribution.player === player)
-        ? current.map((contribution) => (contribution.player === player ? { ...contribution, amount } : contribution))
-        : [...current, { player, amount }]
-    );
+    const today = new Date().toISOString().slice(0, 10);
+    setContributions((current) => {
+      const existing = current.find((contribution) => contribution.player === player);
+      const delta = amount - (existing?.amount || 0);
+      const lastAmount = delta > 0 ? delta : amount;
+      return existing
+        ? current.map((contribution) =>
+            contribution.player === player ? { ...contribution, amount, lastAmount, lastDate: today } : contribution
+          )
+        : [...current, { player, amount, lastAmount, lastDate: today }];
+    });
   };
 
   const addMissingPlayer = (player: string) => {
@@ -135,7 +196,7 @@ export function AdminFinancePanel() {
             </span>
           </div>
           <div className="mt-4 flex items-center justify-between text-sm font-semibold text-slate-600">
-            <span>{paidPlayers.size}/{members.length} members paid</span>
+            <span>{paidPlayers.size}/{members.length} players paid</span>
             <span>{collectionRate}%</span>
           </div>
           <div className="mt-2 h-3 rounded-full bg-white/60">
@@ -219,27 +280,36 @@ export function AdminFinancePanel() {
             </label>
           </div>
 
-          <div className="mt-5 overflow-hidden rounded-[18px] border border-white/60 bg-white/42">
-            <div className="grid grid-cols-[1fr_120px_180px] gap-3 border-b border-white/60 px-4 py-3 text-xs font-extrabold uppercase tracking-[.08em] text-slate-500 max-md:hidden">
-              <span>Member</span>
-              <span className="text-right">Amount</span>
+          <div className="mt-5 overflow-x-auto rounded-[18px] border border-white/60 bg-white/42">
+            <div className="min-w-[880px]">
+            <div className="grid grid-cols-[1.25fr_100px_110px_110px_110px_110px_160px] gap-3 border-b border-white/60 px-4 py-3 text-xs font-extrabold uppercase tracking-[.08em] text-slate-500">
+              <span>Player</span>
+              <span className="text-right">Expected</span>
+              <span className="text-right">Total paid</span>
+              <span className="text-right">Last in</span>
+              <span className="text-right">Last date</span>
+              <span className="text-right">Balance</span>
               <span className="text-right">Quick update</span>
             </div>
             <div className="divide-y divide-white/55">
               {filteredContributions.map((contribution) => {
                 const paid = contribution.amount > 0;
+                const remaining = Math.max(expectedContribution - contribution.amount, 0);
+                const overpaid = Math.max(contribution.amount - expectedContribution, 0);
+                const settled = remaining === 0 && paid;
 
                 return (
-                  <div key={contribution.player} className="grid gap-3 px-4 py-3 md:grid-cols-[1fr_120px_180px] md:items-center">
+                  <div key={contribution.player} className="grid grid-cols-[1.25fr_100px_110px_110px_110px_110px_160px] items-center gap-3 px-4 py-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <span className={paid ? "grid h-10 w-10 shrink-0 place-items-center rounded-full bg-lime-100 text-[#247e24]" : "grid h-10 w-10 shrink-0 place-items-center rounded-full bg-orange-50 text-orange-700"}>
-                        {paid ? <CheckCircle2 className="h-5 w-5" /> : <UserRoundCheck className="h-5 w-5" />}
+                      <span className={settled ? "grid h-10 w-10 shrink-0 place-items-center rounded-full bg-lime-100 text-[#247e24]" : paid ? "grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-700" : "grid h-10 w-10 shrink-0 place-items-center rounded-full bg-orange-50 text-orange-700"}>
+                        {settled ? <CheckCircle2 className="h-5 w-5" /> : <UserRoundCheck className="h-5 w-5" />}
                       </span>
                       <div className="min-w-0">
                         <p className="truncate font-extrabold text-slate-900">{contribution.player}</p>
-                        <p className="text-xs font-medium text-slate-500">{paid ? "Contribution recorded" : "Still to collect"}</p>
+                        <p className="text-xs font-medium text-slate-500">{settled ? "Settled" : paid ? "Partial" : "Unpaid"}</p>
                       </div>
                     </div>
+                    <span className="text-right text-sm font-extrabold text-slate-700">{formatDh(expectedContribution)}</span>
 
                     {adminMode && canEdit ? (
                       <input
@@ -248,15 +318,20 @@ export function AdminFinancePanel() {
                         step="50"
                         value={contribution.amount}
                         onChange={(event) => updateContribution(contribution.player, Number(event.target.value))}
-                        className="h-11 w-full rounded-2xl border border-white/70 bg-white/75 px-3 text-right font-extrabold text-slate-900 outline-none focus:border-lime-400 md:w-[120px]"
+                        className="h-11 w-full rounded-2xl border border-white/70 bg-white/75 px-3 text-right font-extrabold text-slate-900 outline-none focus:border-lime-400"
                       />
                     ) : (
-                      <span className={paid ? "justify-self-start rounded-full bg-lime-100 px-4 py-2 font-extrabold text-[#247e24] md:justify-self-end" : "justify-self-start rounded-full bg-orange-50 px-4 py-2 font-extrabold text-orange-700 md:justify-self-end"}>
+                      <span className={paid ? "justify-self-end rounded-full bg-lime-100 px-4 py-2 font-extrabold text-[#247e24]" : "justify-self-end rounded-full bg-orange-50 px-4 py-2 font-extrabold text-orange-700"}>
                         {formatDh(contribution.amount)}
                       </span>
                     )}
+                    <span className="text-right text-sm font-extrabold text-slate-700">{paid ? formatDh(contribution.lastAmount || contribution.amount) : "-"}</span>
+                    <span className="text-right text-xs font-bold text-slate-500">{contribution.lastDate ? new Date(`${contribution.lastDate}T00:00:00`).toLocaleDateString("fr-FR") : "-"}</span>
+                    <span className={remaining ? "text-right text-sm font-extrabold text-orange-700" : "text-right text-sm font-extrabold text-[#247e24]"}>
+                      {remaining ? formatDh(remaining) : overpaid ? `+${formatDh(overpaid)}` : "0 dh"}
+                    </span>
 
-                    <div className="flex flex-wrap justify-start gap-2 md:justify-end">
+                    <div className="flex flex-wrap justify-end gap-2">
                       {[100, 200, 300].map((amount) => (
                         <button
                           key={amount}
@@ -272,13 +347,14 @@ export function AdminFinancePanel() {
                 );
               })}
             </div>
+            </div>
           </div>
         </Card>
 
         <div className="space-y-5">
           <Card>
             <SectionTitle>Still To Collect</SectionTitle>
-            <p className="mt-2 text-sm text-slate-600">{unpaidPlayers.length} members with no recorded contribution.</p>
+            <p className="mt-2 text-sm text-slate-600">{unpaidPlayers.length} players with no recorded contribution.</p>
             <div className="mt-5 flex flex-wrap gap-2">
               {unpaidPlayers.length ? (
                 unpaidPlayers.map((player) => (
@@ -292,31 +368,36 @@ export function AdminFinancePanel() {
                   </button>
                 ))
               ) : (
-                <p className="text-sm font-semibold text-[#247e24]">All active members have a recorded contribution.</p>
+                <p className="text-sm font-semibold text-[#247e24]">All active players have a recorded contribution.</p>
               )}
             </div>
           </Card>
 
           <Card>
-            <SectionTitle>Booking Costs</SectionTitle>
-            <p className="mt-2 text-sm text-slate-600">Each new reservation records an 80 MAD/DH cost once. Deleted bookings add a reversal.</p>
-            <div className="mt-4 space-y-2">
-              {transactions.length ? (
-                transactions.slice(-5).reverse().map((transaction) => (
-                  <div key={transaction.id} className="flex items-start justify-between gap-3 rounded-2xl border border-white/60 bg-white/55 p-3">
+            <SectionTitle>Account Ledger</SectionTitle>
+            <p className="mt-2 text-sm text-slate-600">Ins, outs, and booking deductions linked to scheduled matches.</p>
+            <div className="mt-4 overflow-hidden rounded-2xl border border-white/60 bg-white/45">
+              <div className="grid grid-cols-[90px_1fr_80px_80px] gap-2 border-b border-white/60 px-3 py-2 text-[11px] font-extrabold uppercase text-slate-500">
+                <span>Date</span>
+                <span>Item</span>
+                <span className="text-right">In</span>
+                <span className="text-right">Out</span>
+              </div>
+              <div className="divide-y divide-white/55">
+                {accountRows.map((row) => (
+                  <div key={row.id} className="grid grid-cols-[90px_1fr_80px_80px] gap-2 px-3 py-3 text-xs">
+                    <span className="font-bold text-slate-500">{row.date}</span>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-extrabold text-slate-900">{transaction.note}</p>
-                      <p className="text-xs font-medium text-slate-500">{new Date(transaction.createdAt).toLocaleDateString("fr-FR")}</p>
+                      <p className="truncate font-extrabold text-slate-900">{row.description}</p>
+                      <p className="text-[11px] font-semibold text-slate-500">{row.type}</p>
                     </div>
-                    <span className={transaction.amount < 0 ? "shrink-0 rounded-full bg-orange-50 px-3 py-1 text-sm font-extrabold text-orange-700" : "shrink-0 rounded-full bg-lime-100 px-3 py-1 text-sm font-extrabold text-[#247e24]"}>
-                      {formatDh(transaction.amount)}
-                    </span>
+                    <span className="text-right font-extrabold text-[#247e24]">{row.in ? formatDh(row.in) : "-"}</span>
+                    <span className="text-right font-extrabold text-orange-700">{row.out ? formatDh(row.out) : "-"}</span>
                   </div>
-                ))
-              ) : (
-                <p className="rounded-2xl border border-white/60 bg-white/45 p-4 text-sm text-slate-500">No booking transactions yet.</p>
-              )}
+                ))}
+              </div>
             </div>
+            <p className="mt-3 text-xs font-semibold text-slate-500">New match bookings automatically add one {formatDh(Math.abs(bookingCostAmount))} outflow; cancelled/deleted bookings add a reversal.</p>
           </Card>
 
           <Card>
