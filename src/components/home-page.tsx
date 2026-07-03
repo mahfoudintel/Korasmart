@@ -43,8 +43,8 @@ function TeamPreview({ teamA, teamB }: { teamA: string[]; teamB: string[] }) {
       </div>
       <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
         <div className="text-center">
-          <p className="text-sm font-black uppercase text-[#166534]">Team A</p>
-          <div className="mx-auto mt-4 jersey h-12 w-12 bg-[#4fb332] shadow-[inset_0_0_0_2px_rgba(0,0,0,.18)]" />
+          <p className="text-sm font-black uppercase text-[#4f9f00]">Team A</p>
+          <div className="mx-auto mt-4 jersey h-12 w-12 bg-[#a7ff1a] shadow-[inset_0_0_0_2px_rgba(0,0,0,.16),0_10px_22px_rgba(167,255,26,.24)]" />
           <p className="mt-3 text-xs font-bold text-slate-500">{teamA.length} players</p>
           <div className="mt-3 flex justify-center -space-x-2">
             {teamA.slice(0, 5).map((name) => <span key={name} className="grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-slate-800 text-[10px] font-black text-white">{name[0]}</span>)}
@@ -52,8 +52,8 @@ function TeamPreview({ teamA, teamB }: { teamA: string[]; teamB: string[] }) {
         </div>
         <div className="grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white/70 text-xs font-black text-slate-700">VS</div>
         <div className="text-center">
-          <p className="text-sm font-black uppercase text-slate-900">Team B</p>
-          <div className="mx-auto mt-4 jersey h-12 w-12 bg-[#243852] shadow-[inset_0_0_0_2px_rgba(255,255,255,.18)]" />
+          <p className="text-sm font-black uppercase text-[#c65a00]">Team B</p>
+          <div className="mx-auto mt-4 jersey h-12 w-12 bg-[#ff8a00] shadow-[inset_0_0_0_2px_rgba(0,0,0,.16),0_10px_22px_rgba(255,138,0,.22)]" />
           <p className="mt-3 text-xs font-bold text-slate-500">{teamB.length} players</p>
           <div className="mt-3 flex justify-center -space-x-2">
             {teamB.slice(0, 5).map((name) => <span key={name} className="grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-[#234] text-[10px] font-black text-white">{name[0]}</span>)}
