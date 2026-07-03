@@ -19,8 +19,8 @@ export function getRoleForPlayer(playerName: string | null | undefined): UserRol
   return playerName && adminPlayers.has(playerName) ? "admin" : "player";
 }
 
-export const canManageFinances = (role: UserRole) => role === "admin" || role === "budgeting_booking_officer";
-export const canManageSchedule = (role: UserRole) => role === "admin" || role === "budgeting_booking_officer";
+export const canManageFinances = (role: UserRole) => role === "admin";
+export const canManageSchedule = (role: UserRole) => role === "admin";
 export const canManageMembers = (role: UserRole) => role === "admin";
 export const canManageRoles = (role: UserRole) => role === "admin";
 export const canEditFinance = canManageFinances;

@@ -5,6 +5,7 @@ import { CalendarCheck, CheckCircle2, Coins, Pencil, Plus, RotateCcw, Save, Sear
 import { canEditFinance } from "@/lib/access";
 import { financeSnapshot, formatDh } from "@/lib/finance";
 import { useRole } from "@/hooks/use-role";
+import { useLocalProfile } from "@/hooks/use-local-profile";
 import { useMembers } from "@/hooks/use-members";
 import { useFinanceTransactions } from "@/hooks/use-finance-transactions";
 import { useReservations } from "@/hooks/use-reservations";
@@ -23,6 +24,7 @@ const storageKey = "korasmart-finance-admin-v1";
 
 export function AdminFinancePanel() {
   const { role } = useRole();
+  const { profile } = useLocalProfile();
   const { members } = useMembers();
   const { reservations } = useReservations();
   const { transactions, transactionTotal } = useFinanceTransactions();
@@ -152,6 +154,61 @@ export function AdminFinancePanel() {
   const addMissingPlayer = (player: string) => {
     updateContribution(player, expectedContribution);
   };
+
+  const currentPlayerContribution = activeContributions.find((item) => item.player === profile.playerName);
+
+  if (!canEdit) {
+    return (
+      <div className="space-y-5">
+        <div className="grid gap-5 md:grid-cols-3">
+          <Card>
+            <p className="text-xs font-extrabold uppercase tracking-[.12em] text-slate-500">Current balance</p>
+            <p className={`mt-3 text-4xl font-extrabold ${adjustedBalance < 0 ? "text-orange-600" : "text-[#238923]"}`}>
+              {formatDh(adjustedBalance)}
+            </p>
+            <p className="mt-3 text-sm text-slate-600">Club caisse after scheduled booking costs.</p>
+          </Card>
+          <Card>
+            <p className="text-xs font-extrabold uppercase tracking-[.12em] text-slate-500">My contribution</p>
+            <p className="mt-3 text-4xl font-extrabold text-[#238923]">{formatDh(currentPlayerContribution?.amount || 0)}</p>
+            <p className="mt-3 text-sm text-slate-600">
+              Last paid: {currentPlayerContribution?.lastDate ? new Date(`${currentPlayerContribution.lastDate}T00:00:00`).toLocaleDateString("fr-FR") : "not recorded"}
+            </p>
+          </Card>
+          <Card>
+            <p className="text-xs font-extrabold uppercase tracking-[.12em] text-slate-500">Booking costs</p>
+            <p className="mt-3 text-4xl font-extrabold text-orange-600">{formatDh(transactionTotal)}</p>
+            <p className="mt-3 text-sm text-slate-600">New bookings deduct {formatDh(Math.abs(bookingCostAmount))} automatically.</p>
+          </Card>
+        </div>
+
+        <Card>
+          <SectionTitle>Recent Money Movements</SectionTitle>
+          <div className="mt-5 overflow-hidden rounded-2xl border border-white/60 bg-white/45">
+            <div className="grid grid-cols-[100px_1fr_90px] gap-2 border-b border-white/60 px-4 py-3 text-xs font-extrabold uppercase text-slate-500">
+              <span>Date</span>
+              <span>Item</span>
+              <span className="text-right">Amount</span>
+            </div>
+            <div className="divide-y divide-white/55">
+              {accountRows.slice(-6).map((row) => (
+                <div key={row.id} className="grid grid-cols-[100px_1fr_90px] gap-2 px-4 py-3 text-sm">
+                  <span className="font-bold text-slate-500">{row.date}</span>
+                  <div className="min-w-0">
+                    <p className="truncate font-extrabold text-slate-900">{row.description}</p>
+                    <p className="text-xs font-semibold text-slate-500">{row.type}</p>
+                  </div>
+                  <span className={row.net < 0 ? "text-right font-extrabold text-orange-700" : "text-right font-extrabold text-[#247e24]"}>
+                    {formatDh(row.net)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

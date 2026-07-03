@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getRoleForPlayer } from "@/lib/access";
 import { players } from "@/lib/data";
 
 export type LocalProfile = {
@@ -10,6 +11,11 @@ export type LocalProfile = {
   avatarDataUrl: string;
   avatarPreset: string;
   loggedIn: boolean;
+  impersonatorUsername?: string;
+  impersonatorPlayerName?: string;
+  impersonatorDisplayName?: string;
+  impersonatorAvatarDataUrl?: string;
+  impersonatorAvatarPreset?: string;
 };
 
 type LocalUser = {
@@ -31,6 +37,10 @@ const defaultUsers: LocalUser[] = players.map((player, index) => ({
   playerName: player.name,
   avatarPreset: `/images/avatars/avatar-${String((index % 20) + 1).padStart(2, "0")}.png`
 }));
+
+function getDefaultUserForPlayer(playerName: string) {
+  return defaultUsers.find((user) => user.playerName === playerName);
+}
 
 const defaultProfile: LocalProfile = {
   username: defaultUsers[0].username,
@@ -120,12 +130,60 @@ export function useLocalProfile() {
       displayName: samePlayer ? profile.displayName : user.playerName,
       avatarDataUrl: samePlayer ? profile.avatarDataUrl : "",
       avatarPreset: samePlayer ? profile.avatarPreset : user.avatarPreset,
-      loggedIn: true
+      loggedIn: true,
+      impersonatorUsername: undefined,
+      impersonatorPlayerName: undefined,
+      impersonatorDisplayName: undefined,
+      impersonatorAvatarDataUrl: undefined,
+      impersonatorAvatarPreset: undefined
     });
 
     return true;
   };
   const logout = () => updateProfile({ loggedIn: false });
+  const impersonatePlayer = (playerName: string) => {
+    if (!profile.loggedIn) return false;
+    const sourcePlayerName = profile.impersonatorPlayerName || profile.playerName;
+    if (getRoleForPlayer(sourcePlayerName) !== "admin") return false;
+
+    const user = getDefaultUserForPlayer(playerName);
+    if (!user) return false;
+
+    setProfile({
+      ...profile,
+      impersonatorUsername: profile.impersonatorUsername || profile.username,
+      impersonatorPlayerName: sourcePlayerName,
+      impersonatorDisplayName: profile.impersonatorDisplayName || profile.displayName,
+      impersonatorAvatarDataUrl: profile.impersonatorAvatarDataUrl ?? profile.avatarDataUrl,
+      impersonatorAvatarPreset: profile.impersonatorAvatarPreset || profile.avatarPreset,
+      username: user.username,
+      playerName: user.playerName,
+      displayName: user.playerName,
+      avatarDataUrl: "",
+      avatarPreset: user.avatarPreset,
+      loggedIn: true
+    });
+
+    return true;
+  };
+  const stopImpersonating = () => {
+    if (!profile.impersonatorPlayerName) return;
+
+    setProfile({
+      ...profile,
+      username: profile.impersonatorUsername || profile.username,
+      playerName: profile.impersonatorPlayerName,
+      displayName: profile.impersonatorDisplayName || profile.impersonatorPlayerName,
+      avatarDataUrl: profile.impersonatorAvatarDataUrl || "",
+      avatarPreset: profile.impersonatorAvatarPreset || getDefaultUserForPlayer(profile.impersonatorPlayerName)?.avatarPreset || profile.avatarPreset,
+      impersonatorUsername: undefined,
+      impersonatorPlayerName: undefined,
+      impersonatorDisplayName: undefined,
+      impersonatorAvatarDataUrl: undefined,
+      impersonatorAvatarPreset: undefined,
+      loggedIn: true
+    });
+  };
 
   return {
     profile,
@@ -133,6 +191,8 @@ export function useLocalProfile() {
     updateProfile,
     login,
     loginWithCredentials,
-    logout
+    logout,
+    impersonatePlayer,
+    stopImpersonating
   };
 }

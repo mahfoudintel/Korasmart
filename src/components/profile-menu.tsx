@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { Camera, ChevronDown, LogIn, LogOut, Save } from "lucide-react";
+import { Camera, ChevronDown, Eye, LogIn, LogOut, Save, ShieldCheck } from "lucide-react";
 import { roleLabels } from "@/lib/access";
+import { players } from "@/lib/data";
 import { useLocalProfile } from "@/hooks/use-local-profile";
 import { useRole } from "@/hooks/use-role";
 
@@ -14,7 +15,8 @@ export function ProfileMenu() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const { profile, updateProfile, loginWithCredentials, logout } = useLocalProfile();
+  const [impersonationTarget, setImpersonationTarget] = useState(players[0]?.name || "");
+  const { profile, updateProfile, loginWithCredentials, logout, impersonatePlayer, stopImpersonating } = useLocalProfile();
   const { role } = useRole();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -32,6 +34,11 @@ export function ProfileMenu() {
 
   const initials = (profile.displayName || profile.playerName).slice(0, 1).toUpperCase();
   const avatarSrc = profile.avatarDataUrl || profile.avatarPreset;
+  const canStartImpersonation = profile.loggedIn && role === "admin" && !profile.impersonatorPlayerName;
+  const impersonationOptions = players.filter((player) => player.name !== profile.playerName);
+  const effectiveImpersonationTarget = impersonationOptions.some((player) => player.name === impersonationTarget)
+    ? impersonationTarget
+    : impersonationOptions[0]?.name || "";
   const submitLogin = () => {
     const success = loginWithCredentials(username, password);
     if (!success) {
@@ -56,15 +63,15 @@ export function ProfileMenu() {
             initials
           )}
         </span>
-        <span className="hidden leading-tight sm:block">
-          <span className="block max-w-28 truncate text-sm font-black">{profile.loggedIn ? profile.displayName : "Logged out"}</span>
-          <span className="block text-xs text-slate-500">{profile.loggedIn ? roleLabels[role] : "Tap to login"}</span>
+          <span className="hidden leading-tight sm:block">
+            <span className="block max-w-28 truncate text-sm font-black">{profile.loggedIn ? profile.displayName : "Logged out"}</span>
+          <span className="block text-xs text-slate-500">{profile.impersonatorPlayerName ? "Impersonating" : profile.loggedIn ? roleLabels[role] : "Tap to login"}</span>
         </span>
         <ChevronDown className="hidden h-4 w-4 text-slate-600 sm:block" />
       </button>
 
       {open && (
-        <div className="glass-panel absolute right-0 z-50 mt-3 w-[min(24rem,calc(100vw-2rem))] rounded-[20px] p-4">
+        <div className="absolute right-0 z-50 mt-3 w-[min(24rem,calc(100vw-2rem))] rounded-[20px] border border-slate-200 bg-white p-4 text-slate-950 shadow-[0_24px_70px_rgba(2,12,27,.24)]">
           <div className="flex items-center gap-4">
             <button
               onClick={() => profile.loggedIn && inputRef.current?.click()}
@@ -84,10 +91,26 @@ export function ProfileMenu() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-black text-slate-950">Player profile</p>
               <span className="mt-2 inline-flex rounded-full bg-lime-100 px-3 py-1 text-xs font-black text-[#247e24]">
-                {profile.loggedIn ? "Logged in" : "Logged out"}
+                {profile.impersonatorPlayerName ? `Impersonating ${profile.playerName}` : profile.loggedIn ? "Logged in" : "Logged out"}
               </span>
             </div>
           </div>
+
+          {profile.impersonatorPlayerName && (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3">
+              <p className="text-xs font-black uppercase text-amber-700">Impersonation active</p>
+              <p className="mt-1 text-sm font-semibold text-slate-700">
+                Original admin: {profile.impersonatorPlayerName}. You are viewing the app as {profile.playerName}.
+              </p>
+              <button
+                onClick={stopImpersonating}
+                className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-900 px-4 text-sm font-black text-white"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Stop impersonating
+              </button>
+            </div>
+          )}
 
           {profile.loggedIn && (
             <div className="mt-4 grid grid-cols-2 gap-3">
@@ -138,6 +161,32 @@ export function ProfileMenu() {
               <p className="mt-1 font-black text-slate-950">{profile.playerName}</p>
                   <p className="mt-1 text-xs leading-relaxed text-slate-500">Access: {roleLabels[role]}</p>
                 </div>
+
+                {canStartImpersonation && (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                    <p className="text-xs font-bold text-slate-600">Impersonate player</p>
+                    <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
+                      <select
+                        value={effectiveImpersonationTarget}
+                        onChange={(event) => setImpersonationTarget(event.target.value)}
+                        className="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-black text-slate-950 outline-none"
+                      >
+                        {impersonationOptions.map((player) => (
+                          <option key={player.name} value={player.name}>
+                            {player.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => effectiveImpersonationTarget && impersonatePlayer(effectiveImpersonationTarget)}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 text-sm font-black text-white"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Impersonate
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <label className="text-xs font-bold text-slate-600">
                   Display name

@@ -49,7 +49,7 @@ export function ReservationAdmin() {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className={canEdit ? "grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]" : "grid gap-5"}>
         <div className="flex flex-col gap-5">
           <Card className="order-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -150,15 +150,13 @@ export function ReservationAdmin() {
           </Card>
         </div>
 
-        <Card>
+        {canEdit && <Card>
           <SectionTitle>Reservation</SectionTitle>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            {canEdit
-              ? "Add or update a booking with only the essentials: date, time, location, duration, and status."
-              : "Read-only view. Booking or admin access is required to change reservations."}
+            Add or update a booking with only the essentials: date, time, location, duration, and status.
           </p>
 
-          {canEdit && <div className="mt-5 grid gap-3">
+          <div className="mt-5 grid gap-3">
             <label className="text-sm font-semibold text-slate-600">
               Date
               <input className="mt-2 h-11 w-full rounded-2xl border border-white/70 bg-white/72 px-4 font-semibold text-slate-900 outline-none focus:border-lime-400" type="date" value={draft.date} onChange={(event) => updateDraft("date", event.target.value)} />
@@ -193,9 +191,9 @@ export function ReservationAdmin() {
                 <option value="cancelled">Cancelled</option>
               </select>
             </label>
-          </div>}
+          </div>
 
-          {canEdit && <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-3">
             <button onClick={saveDraft} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#3dad3d] px-5 font-extrabold text-white transition hover:bg-[#319c31]">
               <Save className="h-4 w-4" />
               Save
@@ -216,8 +214,8 @@ export function ReservationAdmin() {
                 Delete selected
               </button>
             )}
-          </div>}
-        </Card>
+          </div>
+        </Card>}
       </div>
 
       {canEdit && <button
