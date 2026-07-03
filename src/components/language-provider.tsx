@@ -52,7 +52,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = language;
-    document.documentElement.dir = "ltr";
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
     translatePage(language);
 
     const observer = new MutationObserver(() => translatePage(language));

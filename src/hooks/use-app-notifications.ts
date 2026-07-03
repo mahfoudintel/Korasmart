@@ -5,6 +5,7 @@ import { useAttendance } from "@/hooks/use-attendance";
 import { useReservations } from "@/hooks/use-reservations";
 import { formatReservationDate, getNextReservation } from "@/lib/reservations";
 import { getSessionReservationStatus } from "@/lib/workflow-rules";
+import { useLanguage } from "@/components/language-provider";
 
 export type AppNotification = {
   id: string;
@@ -15,6 +16,34 @@ export type AppNotification = {
 
 const readStorageKey = "korasmart-read-notifications-v1";
 const deliveredStorageKey = "korasmart-delivered-notifications-v1";
+
+function notificationCopy(language: "en" | "fr" | "ar") {
+  return {
+    nextTitle: language === "fr" ? "Prochain match planifie" : language === "ar" ? "تمت جدولة المباراة القادمة" : "Next game scheduled",
+    openTitle: language === "fr" ? "Reservation ouverte" : language === "ar" ? "الحجز مفتوح" : "Reservation is open",
+    openBody: language === "fr" ? "Confirme ta presence." : language === "ar" ? "أكد حضورك." : "Confirm your attendance.",
+    confirmedTitle: language === "fr" ? "Presence confirmee" : language === "ar" ? "تم تأكيد حضورك" : "You are confirmed",
+    waitingTitle: language === "fr" ? "Liste d'attente" : language === "ar" ? "قائمة الانتظار" : "You are on the waiting list",
+    scheduleBody: (date: string, time: string, venue: string) =>
+      language === "fr"
+        ? `${date} a ${time} - ${venue}`
+        : language === "ar"
+          ? `${date} على الساعة ${time} - ${venue}`
+          : `${date} at ${time} - ${venue}`,
+    confirmedBody: (player: string, position: number) =>
+      language === "fr"
+        ? `${player} est confirme en place #${position}.`
+        : language === "ar"
+          ? `${player} مؤكد في المركز #${position}.`
+          : `${player} is confirmed in spot #${position}.`,
+    waitingBody: (player: string, position: number) =>
+      language === "fr"
+        ? `${player} est en attente en position #${position}.`
+        : language === "ar"
+          ? `${player} في قائمة الانتظار بالمركز #${position}.`
+          : `${player} is waiting in position #${position}.`
+  };
+}
 
 function readIdSet(key: string) {
   try {
@@ -27,6 +56,7 @@ function readIdSet(key: string) {
 }
 
 export function useAppNotifications() {
+  const { language } = useLanguage();
   const { reservations } = useReservations();
   const nextReservation = getNextReservation(reservations);
   const attendance = useAttendance(nextReservation?.id, nextReservation);
@@ -40,12 +70,13 @@ export function useAppNotifications() {
 
   const notifications = useMemo<AppNotification[]>(() => {
     if (!nextReservation) return [];
+    const copy = notificationCopy(language);
 
     const items: AppNotification[] = [
       {
         id: `reservation-${nextReservation.id}`,
-        title: "Next game scheduled",
-        body: `${formatReservationDate(nextReservation.date)} at ${nextReservation.time} - ${nextReservation.venue}`,
+        title: copy.nextTitle,
+        body: copy.scheduleBody(formatReservationDate(nextReservation.date), nextReservation.time, nextReservation.venue),
         href: "/"
       }
     ];
@@ -54,8 +85,8 @@ export function useAppNotifications() {
     if (!attendance.currentStatus && reservationStatus === "open") {
       items.push({
         id: `reservation-open-${nextReservation.id}`,
-        title: "Reservation is open",
-        body: "Choose attending to reserve your place. No response means not attending.",
+        title: copy.openTitle,
+        body: copy.openBody,
         href: "/"
       });
     }
@@ -63,8 +94,8 @@ export function useAppNotifications() {
     if (attendance.currentStatus === "playing") {
       items.push({
         id: `attendance-confirmed-${nextReservation.id}-${attendance.selectedPlayer}`,
-        title: "You are confirmed",
-        body: `${attendance.selectedPlayer} is confirmed in spot #${attendance.selectedPosition}.`,
+        title: copy.confirmedTitle,
+        body: copy.confirmedBody(attendance.selectedPlayer, attendance.selectedPosition),
         href: "/"
       });
     }
@@ -72,14 +103,14 @@ export function useAppNotifications() {
     if (attendance.currentStatus === "waiting") {
       items.push({
         id: `attendance-waiting-${nextReservation.id}-${attendance.selectedPlayer}`,
-        title: "You are on the waiting list",
-        body: `${attendance.selectedPlayer} is waiting in position #${attendance.selectedPosition}.`,
+        title: copy.waitingTitle,
+        body: copy.waitingBody(attendance.selectedPlayer, attendance.selectedPosition),
         href: "/"
       });
     }
 
     return items;
-  }, [attendance.currentStatus, attendance.selectedPlayer, attendance.selectedPosition, nextReservation]);
+  }, [attendance.currentStatus, attendance.selectedPlayer, attendance.selectedPosition, language, nextReservation]);
 
   useEffect(() => {
     if (!("Notification" in window) || Notification.permission !== "granted") return;

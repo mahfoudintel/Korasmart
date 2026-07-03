@@ -173,9 +173,6 @@ export function AdminFinancePanel() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <SectionTitle>Budget Officer Workspace</SectionTitle>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                Update each player contribution directly. Changes are saved locally now and can later be connected to Supabase payments.
-              </p>
               <div className="mt-3 flex flex-wrap gap-2 text-xs font-extrabold text-slate-600">
                 <span className="rounded-full bg-white/65 px-3 py-1">Expected {formatDh(expectedTotal)}</span>
                 <span className="rounded-full bg-lime-100 px-3 py-1 text-[#247e24]">{amountRate}% of target amount</span>
@@ -327,7 +324,6 @@ export function AdminFinancePanel() {
             <div className="mt-5 space-y-4 text-sm leading-6 text-slate-600">
               <p><span className="font-extrabold text-slate-900">{formatDh(strongestContribution.amount)}</span> highest contribution from {strongestContribution.player}.</p>
               <p><span className="font-extrabold text-slate-900">{formatDh(neededToZero)}</span> needed to bring the caisse back to zero.</p>
-              <p><span className="font-extrabold text-slate-900">{formatDh(expectedContribution)}</span> is used as the quick expected amount per member.</p>
             </div>
           </Card>
         </div>

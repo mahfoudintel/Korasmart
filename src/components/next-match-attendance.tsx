@@ -8,8 +8,25 @@ import { formatReservationDate, getNextReservation } from "@/lib/reservations";
 import { cn } from "@/lib/utils";
 import { ReservationMapLink } from "@/components/reservation-map-link";
 import { useLocalProfile } from "@/hooks/use-local-profile";
+import { useLanguage } from "@/components/language-provider";
+import { getReservationOpenAt } from "@/lib/workflow-rules";
+import { type Language } from "@/lib/translations";
+
+function formatOpenMessage(language: Language, reservationDate: string) {
+  const locale = language === "ar" ? "ar-MA" : "fr-FR";
+  const date = getReservationOpenAt({ date: reservationDate }).toLocaleDateString(locale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+
+  if (language === "fr") return `Ouverture le ${date} a 11:00.`;
+  if (language === "ar") return `يفتح الحجز يوم ${date} على الساعة 11:00.`;
+  return `Opens on ${date} at 11:00.`;
+}
 
 export function NextMatchAttendance({ compact = false }: { compact?: boolean }) {
+  const { language } = useLanguage();
   const { profile } = useLocalProfile();
   const { reservations } = useReservations();
   const nextReservation = getNextReservation(reservations);
@@ -28,6 +45,12 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
     setStatus,
     dropOut
   } = useAttendance(nextReservation?.id, nextReservation);
+  const statusMessage =
+    reservationStatus === "open"
+      ? "Choose your status."
+      : reservationStatus === "completed"
+        ? "Closed"
+        : formatOpenMessage(language, nextReservation?.date || "");
 
   if (!nextReservation) {
     return (
@@ -50,9 +73,7 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
         </span>
       </div>
       <p className="mt-2 text-xs leading-relaxed text-slate-600">
-        {reservationStatus === "open"
-          ? "First 10 members who choose attending are confirmed. Later signups join the waiting list automatically. No response means not attending."
-          : attendanceMessage}
+        {statusMessage || attendanceMessage}
       </p>
 
       <div className="mt-4 flex items-center gap-3">
@@ -71,7 +92,7 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
       <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-white/55 p-2 text-center text-[11px] text-slate-600">
         <span><b className="block text-lg text-[#2f9e2f]">{summary.playing}</b>Attending</span>
         <span><b className="block text-lg text-amber-300">{summary.waiting}</b>Waiting</span>
-        <span><b className="block text-lg text-red-500">{summary.notAttending}</b>Not attending</span>
+        <span><b className="block text-lg text-red-500">{summary.notAttending}</b>Out</span>
       </div>
 
       {!compact && (
@@ -89,7 +110,6 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
               </option>
             ))}
           </select>
-          {profile.loggedIn && <span className="mt-2 block text-[11px] text-slate-500">Controlled by your logged-in profile.</span>}
         </label>
       )}
 
@@ -103,7 +123,7 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
           )}
         >
           <CheckCircle2 className="h-4 w-4" />
-          {summary.playing >= playingLimit && currentStatus !== "playing" ? "Join waitlist" : "Attending"}
+          {summary.playing >= playingLimit && currentStatus !== "playing" ? "Waitlist" : "Attending"}
         </button>
         <button
           onClick={dropOut}
@@ -111,16 +131,15 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
           className="grid min-h-12 place-items-center rounded-2xl border border-white/60 bg-white/68 px-2 text-[11px] font-extrabold text-slate-700 transition hover:border-orange-300/70 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-55"
         >
           {currentStatus ? <LogOut className="h-4 w-4" /> : <UserX className="h-4 w-4" />}
-          {currentStatus ? "Drop out" : "Not attending"}
+          {currentStatus ? "Drop out" : "Out"}
         </button>
       </div>
 
-      <div className="mt-3 rounded-2xl border border-white/60 bg-white/55 p-3 text-xs text-slate-600">
+      {(currentStatus || canSubmitAttendance) && <div className="mt-3 rounded-2xl border border-white/60 bg-white/55 p-3 text-xs text-slate-600">
         {currentStatus === "playing" && <span><b className="text-[#2f9e2f]">Confirmed</b> spot #{selectedPosition}. Use Drop out if something comes up.</span>}
-        {currentStatus === "waiting" && <span><b className="text-amber-300">Waiting list</b> position #{selectedPosition}. You move up automatically if someone drops out.</span>}
+        {currentStatus === "waiting" && <span><b className="text-amber-300">Waiting list</b> position #{selectedPosition}.</span>}
         {!currentStatus && canSubmitAttendance && <span><b className="text-slate-950">Not attending</b> by default until you choose attending.</span>}
-        {!currentStatus && !canSubmitAttendance && <span><b className="text-slate-950">Attendance locked.</b> {attendanceMessage}</span>}
-      </div>
+      </div>}
 
       <div className="mt-4 grid gap-3">
         <div>

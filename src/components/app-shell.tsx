@@ -62,7 +62,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="min-w-0 w-full px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-8">
           <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <div className="lg:hidden">
-              <FootballLogo />
+              <FootballLogo compact />
             </div>
             <div className="hidden lg:block">
               <h1 className="text-3xl font-extrabold text-slate-900 xl:text-4xl">{pageCopy.title}</h1>
