@@ -39,49 +39,54 @@ export function HomePage() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_360px_330px]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px] 2xl:grid-cols-[minmax(0,.95fr)_430px_330px]">
         <Card className="overflow-hidden p-0">
-          <div className="grid gap-6 p-5 md:p-7 2xl:grid-cols-[1.45fr_.8fr]">
+          <div className="p-5 md:p-7">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.14em] text-[#238923]">KoraSmart Home</p>
-              <h2 className="mt-3 max-w-3xl text-3xl font-extrabold leading-[1.08] text-slate-900 md:text-[2.55rem] 2xl:text-[2.8rem]">Next game, attendance, and club rhythm.</h2>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-700">
-                This is the simple member view: check the next reservation, put your name down, see who is confirmed, and follow the upcoming games.
+              <h2 className="mt-3 max-w-2xl text-3xl font-extrabold leading-[1.08] text-slate-900 md:text-[2.35rem] 2xl:text-[2.45rem]">Next game at a glance.</h2>
+              <p className="mt-4 max-w-xl text-base leading-7 text-slate-700">
+                Check the next reservation, follow attendance, and keep the group organized without extra noise.
               </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Link href="/bookings" className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#3dad3d] px-5 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(47,158,47,.22)]">
-                  Full schedule <CalendarDays className="h-4 w-4" />
-                </Link>
-                <Link href="/players" className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200/80 bg-white/70 px-5 text-sm font-extrabold text-slate-800">
-                  Player ratings <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
             </div>
 
-            <div className="rounded-[20px] border border-white/70 bg-white/68 p-5 shadow-[0_12px_30px_rgba(48,73,34,.08)]">
-              <p className="text-xs font-extrabold uppercase tracking-[.12em] text-[#238923]">Incoming game details</p>
+            <div className="mt-6 rounded-[20px] border border-white/70 bg-white/62 p-4 shadow-[0_12px_30px_rgba(48,73,34,.07)]">
               {nextReservation ? (
-                <div className="mt-5 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <CalendarDays className="h-7 w-7 text-[#2f9e2f]" />
-                    <div>
-                      <p className="font-extrabold text-slate-900">{formatReservationDate(nextReservation.date)}</p>
-                      <p className="text-2xl font-extrabold text-[#2f9e2f]">{nextReservation.time}</p>
+                <div className="grid gap-3 sm:grid-cols-[1fr_110px] sm:items-center">
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold uppercase tracking-[.12em] text-[#238923]">Next reservation</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-slate-900">
+                      <span className="inline-flex items-center gap-2 font-extrabold">
+                        <CalendarDays className="h-5 w-5 text-[#2f9e2f]" />
+                        {formatReservationDate(nextReservation.date)}
+                      </span>
+                      <span className="inline-flex items-center gap-2 font-extrabold">
+                        <Clock3 className="h-5 w-5 text-[#2f9e2f]" />
+                        {nextReservation.time}
+                      </span>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <MapPin className="h-4 w-4 shrink-0 text-[#2f9e2f]" />
+                      <ReservationMapLink reservation={nextReservation} className="font-semibold text-slate-700" />
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <MapPin className="mt-1 h-6 w-6 text-[#2f9e2f]" />
-                    <div>
-                      <ReservationMapLink reservation={nextReservation} className="font-extrabold text-slate-800" />
-                      <p className="mt-1 text-sm text-slate-600">
-                        {nextReservation.durationMinutes} <span>min football reservation</span>
-                      </p>
-                    </div>
+                  <div className="rounded-2xl bg-lime-100/80 px-4 py-3 text-center">
+                    <p className="text-2xl font-extrabold text-[#238923]">{nextReservation.durationMinutes}</p>
+                    <p className="text-xs font-extrabold uppercase tracking-[.08em] text-[#247e24]">minutes</p>
                   </div>
                 </div>
               ) : (
                 <p className="mt-5 text-sm text-orange-300">No upcoming game has been scheduled yet.</p>
               )}
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/bookings" className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#3dad3d] px-5 text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(47,158,47,.22)]">
+                Full schedule <CalendarDays className="h-4 w-4" />
+              </Link>
+              <Link href="/players" className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200/80 bg-white/70 px-5 text-sm font-extrabold text-slate-800">
+                Player ratings <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </Card>

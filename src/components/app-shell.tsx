@@ -6,7 +6,7 @@ import { SmilePlus } from "lucide-react";
 import { motion } from "framer-motion";
 import { navItems } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { Logo } from "@/components/logo";
+import { FootballLogo } from "@/components/football-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { NextMatchAttendance } from "@/components/next-match-attendance";
 import { AppNotifications } from "@/components/app-notifications";
@@ -35,8 +35,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="field-bg min-h-screen">
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_70%_10%,rgba(255,255,255,.26),transparent_34%)]" />
       <div className="relative mx-auto flex min-h-screen max-w-[1760px]">
-        <aside className="sticky top-0 hidden h-screen w-[250px] shrink-0 flex-col overflow-hidden rounded-r-[22px] border-r border-white/50 bg-white/72 px-4 py-7 shadow-[12px_0_42px_rgba(38,59,28,.12)] backdrop-blur-[22px] lg:flex">
-          <Logo />
+        <aside className="sticky top-0 hidden h-screen w-[270px] shrink-0 flex-col overflow-hidden rounded-r-[22px] border-r border-white/50 bg-white/72 px-5 py-7 shadow-[12px_0_42px_rgba(38,59,28,.12)] backdrop-blur-[22px] lg:flex">
+          <FootballLogo />
           <nav className="mt-10 flex flex-1 flex-col gap-2">
             {navItems.map((item) => {
               const active = pathname === item.href;
@@ -62,7 +62,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="min-w-0 w-full px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-8">
           <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <div className="lg:hidden">
-              <Logo />
+              <FootballLogo />
             </div>
             <div className="hidden lg:block">
               <h1 className="text-3xl font-extrabold text-slate-900 xl:text-4xl">{pageCopy.title}</h1>
