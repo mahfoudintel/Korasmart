@@ -16,7 +16,6 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Players Details": { fr: "Details joueurs", ar: "تفاصيل اللاعبين" },
   Teams: { fr: "Equipes", ar: "الفرق" },
   Bookings: { fr: "Reservations", ar: "الحجوزات" },
-  Scheduling: { fr: "Schedule", ar: "الجدول" },
   Schedule: { fr: "Schedule", ar: "الجدول" },
   Calendar: { fr: "Calendrier", ar: "التقويم" },
   Stats: { fr: "Stats", ar: "الإحصائيات" },
