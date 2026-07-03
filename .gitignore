@@ -10,3 +10,4 @@ pnpm-debug.log*
 .next-dev*.log
 .next-start*.log
 public/images/*-chroma.png
+public/images/*-source.png
