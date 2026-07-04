@@ -528,7 +528,29 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Superuser, Admin, or Officer access is required to update game statistics.": {
     fr: "Un acces Superutilisateur, Admin ou Responsable est requis pour modifier les statistiques.",
     ar: "صلاحية مستخدم فائق أو Admin أو مسؤول مطلوبة لتحديث الإحصائيات."
-  }
+  },
+  "Passing accuracy": { fr: "Precision des passes", ar: "دقة التمرير" },
+  "One-time 0-10 decimal ratings help balance teams.": {
+    fr: "Des notes decimales uniques de 0 a 10 aident a equilibrer les equipes.",
+    ar: "تقييمات عشرية لمرة واحدة من 0 إلى 10 تساعد على توازن الفرق."
+  },
+  "Pick a player, enter precise skill scores, then save once.": {
+    fr: "Choisissez un joueur, saisissez les notes precises, puis enregistrez une seule fois.",
+    ar: "اختر لاعبا، أدخل تقييمات دقيقة، ثم احفظ مرة واحدة."
+  },
+  "Reset this player": { fr: "Reinitialiser ce joueur", ar: "إعادة ضبط هذا اللاعب" },
+  "Rating locked for": { fr: "Note verrouillee pour", ar: "التقييم مقفل لـ" },
+  "A Superuser can reset this player to allow a new rating.": {
+    fr: "Un superutilisateur peut reinitialiser ce joueur pour permettre une nouvelle note.",
+    ar: "يمكن للمستخدم الفائق إعادة ضبط هذا اللاعب للسماح بتقييم جديد."
+  },
+  "No rating saved yet for this player.": {
+    fr: "Aucune note enregistree pour ce joueur.",
+    ar: "لا يوجد تقييم محفوظ لهذا اللاعب بعد."
+  },
+  "Rating saved": { fr: "Note enregistree", ar: "تم حفظ التقييم" },
+  votes: { fr: "votes", ar: "تصويتات" },
+  "Save rating": { fr: "Enregistrer la note", ar: "حفظ التقييم" }
 };
 
 export function translateText(text: string, language: Language) {
