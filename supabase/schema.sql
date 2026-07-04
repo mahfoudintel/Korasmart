@@ -12,13 +12,14 @@ create table if not exists players (
   passing int not null default 70,
   defense int not null default 70,
   shooting int not null default 70,
+  is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
 
 create table if not exists user_roles (
   id uuid primary key default gen_random_uuid(),
   player_id uuid references players(id) on delete cascade,
-  role text not null check (role in ('admin', 'budgeting_booking_officer', 'player')),
+  role text not null check (role in ('superuser', 'admin', 'budgeting_booking_officer', 'player')),
   granted_by uuid references players(id) on delete set null,
   granted_at timestamptz not null default now(),
   unique (player_id, role)
@@ -71,11 +72,12 @@ create table if not exists ratings (
   rater_id uuid references players(id) on delete set null,
   anonymous_rater_hash text,
   player_id uuid references players(id) on delete cascade,
-  speed int check (speed between 1 and 5),
-  shooting int check (shooting between 1 and 5),
-  dribbling int check (dribbling between 1 and 5),
-  ball_control int check (ball_control between 1 and 5),
-  stamina int check (stamina between 1 and 5),
+  speed numeric(4,2) check (speed >= 0 and speed <= 10),
+  shooting numeric(4,2) check (shooting >= 0 and shooting <= 10),
+  passing_accuracy numeric(4,2) check (passing_accuracy >= 0 and passing_accuracy <= 10),
+  dribbling numeric(4,2) check (dribbling >= 0 and dribbling <= 10),
+  ball_control numeric(4,2) check (ball_control >= 0 and ball_control <= 10),
+  stamina numeric(4,2) check (stamina >= 0 and stamina <= 10),
   constraint no_self_rating check (rater_id is null or rater_id <> player_id),
   constraint rater_identity_present check (rater_id is not null or anonymous_rater_hash is not null),
   unique (match_id, anonymous_rater_hash, player_id)
@@ -119,12 +121,16 @@ create table if not exists bookings (
   reservation_status text not null default 'closed' check (reservation_status in ('closed', 'open', 'completed')),
   reservation_open_at timestamptz,
   notification_sent_at timestamptz,
+  match_report jsonb,
   external_provider text default 'Dabat Animations',
   external_id text unique
 );
 
 alter table attendance
   add column if not exists booking_id uuid references bookings(id) on delete cascade;
+
+alter table attendance
+  add constraint attendance_booking_player_key unique (booking_id, player_id);
 
 create or replace function reservation_open_at(starts_at timestamptz)
 returns timestamptz
@@ -256,6 +262,18 @@ insert into players (name, position, skill, speed, stamina, passing, defense, sh
   ('Hicham', 'Defender', 75, 74, 87, 73, 89, 58)
 on conflict do nothing;
 
+insert into user_roles (player_id, role)
+select id, 'superuser'
+from players
+where name = 'Najib'
+on conflict do nothing;
+
+insert into user_roles (player_id, role)
+select id, 'admin'
+from players
+where name = 'Nawfal'
+on conflict do nothing;
+
 insert into finance_snapshots (balance, currency, reserved_until, note) values
   (-170, 'dh', '2026-07-27', 'Nouvelle situation de la caisse a ce jour. Terrain reserve chaque semaine jusqu''au 27/07/2026');
 
@@ -281,11 +299,26 @@ drop policy if exists "players can read roster" on players;
 create policy "players can read roster" on players for select using (auth.uid() is not null);
 
 drop policy if exists "admins manage roles" on user_roles;
-create policy "admins manage roles" on user_roles using (
+drop policy if exists "superusers manage roles" on user_roles;
+drop policy if exists "players read own roles" on user_roles;
+create policy "players read own roles" on user_roles for select using (
+  exists (
+    select 1 from players p
+    where p.id = user_roles.player_id and p.auth_user_id = auth.uid()
+  )
+);
+
+create policy "superusers manage roles" on user_roles for all using (
   exists (
     select 1 from user_roles ur
     join players p on p.id = ur.player_id
-    where p.auth_user_id = auth.uid() and ur.role = 'admin'
+    where p.auth_user_id = auth.uid() and ur.role = 'superuser'
+  )
+) with check (
+  exists (
+    select 1 from user_roles ur
+    join players p on p.id = ur.player_id
+    where p.auth_user_id = auth.uid() and ur.role = 'superuser'
   )
 );
 
@@ -297,13 +330,13 @@ create policy "officers manage bookings" on bookings for all using (
   exists (
     select 1 from user_roles ur
     join players p on p.id = ur.player_id
-    where p.auth_user_id = auth.uid() and ur.role in ('admin', 'budgeting_booking_officer')
+    where p.auth_user_id = auth.uid() and ur.role in ('superuser', 'admin', 'budgeting_booking_officer')
   )
 ) with check (
   exists (
     select 1 from user_roles ur
     join players p on p.id = ur.player_id
-    where p.auth_user_id = auth.uid() and ur.role in ('admin', 'budgeting_booking_officer')
+    where p.auth_user_id = auth.uid() and ur.role in ('superuser', 'admin', 'budgeting_booking_officer')
   )
 );
 
@@ -323,17 +356,20 @@ create policy "players update attendance only when open" on attendance for all u
 );
 
 drop policy if exists "officers manage finance transactions" on finance_transactions;
+drop policy if exists "players read finance transactions" on finance_transactions;
+create policy "players read finance transactions" on finance_transactions for select using (auth.uid() is not null);
+
 create policy "officers manage finance transactions" on finance_transactions for all using (
   exists (
     select 1 from user_roles ur
     join players p on p.id = ur.player_id
-    where p.auth_user_id = auth.uid() and ur.role in ('admin', 'budgeting_booking_officer')
+    where p.auth_user_id = auth.uid() and ur.role in ('superuser', 'admin', 'budgeting_booking_officer')
   )
 ) with check (
   exists (
     select 1 from user_roles ur
     join players p on p.id = ur.player_id
-    where p.auth_user_id = auth.uid() and ur.role in ('admin', 'budgeting_booking_officer')
+    where p.auth_user_id = auth.uid() and ur.role in ('superuser', 'admin', 'budgeting_booking_officer')
   )
 );
 

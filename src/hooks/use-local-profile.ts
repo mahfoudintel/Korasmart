@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
 import { canImpersonate, getRoleForPlayer } from "@/lib/access";
 import { players } from "@/lib/data";
 
@@ -92,6 +93,7 @@ function saveProfile(profile: LocalProfile) {
 }
 
 export function useLocalProfile() {
+  const { profile: authProfile, session, signOut } = useAuth();
   const [profile, setProfileState] = useState<LocalProfile>(defaultProfile);
 
   useEffect(() => {
@@ -105,6 +107,28 @@ export function useLocalProfile() {
       window.removeEventListener(profileChangedEvent, syncProfile);
     };
   }, []);
+
+  useEffect(() => {
+    if (!session || !authProfile) return;
+
+    const authenticatedProfile: LocalProfile = {
+      ...readProfile(),
+      username: authProfile.username || normalizeUsername(authProfile.name),
+      playerName: authProfile.name,
+      displayName: authProfile.name,
+      avatarDataUrl: "",
+      avatarPreset: getDefaultUserForPlayer(authProfile.name)?.avatarPreset || "/images/avatars/avatar-01.png",
+      loggedIn: true,
+      impersonatorUsername: undefined,
+      impersonatorPlayerName: undefined,
+      impersonatorDisplayName: undefined,
+      impersonatorAvatarDataUrl: undefined,
+      impersonatorAvatarPreset: undefined
+    };
+
+    setProfileState(authenticatedProfile);
+    saveProfile(authenticatedProfile);
+  }, [authProfile, session]);
 
   const setProfile = (nextProfile: LocalProfile) => {
     setProfileState(nextProfile);
@@ -140,7 +164,10 @@ export function useLocalProfile() {
 
     return true;
   };
-  const logout = () => updateProfile({ loggedIn: false });
+  const logout = () => {
+    if (session) void signOut();
+    updateProfile({ loggedIn: false });
+  };
   const impersonatePlayer = (playerName: string) => {
     if (!profile.loggedIn) return false;
     const sourcePlayerName = profile.impersonatorPlayerName || profile.playerName;

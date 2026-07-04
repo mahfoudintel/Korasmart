@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RotateCcw, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/components/auth-provider";
 import {
   canManageRoles,
   getRoleForPlayer,
@@ -10,6 +11,7 @@ import {
   setRoleForPlayer,
   type UserRole
 } from "@/lib/access";
+import { supabase } from "@/lib/supabase";
 import { useRole } from "@/hooks/use-role";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { players } from "@/lib/data";
@@ -26,13 +28,24 @@ const roleDescriptions: Record<UserRole, string> = {
 const readAssignments = () => players.map((player) => ({ player: player.name, role: getRoleForPlayer(player.name) }));
 
 export function AccessSettings() {
+  const { session } = useAuth();
   const { role } = useRole();
   const [assignments, setAssignments] = useState(readAssignments);
   const canManageAccess = canManageRoles(role);
 
-  const updatePlayerRole = (playerName: string, nextRole: UserRole) => {
+  const updatePlayerRole = async (playerName: string, nextRole: UserRole) => {
     setRoleForPlayer(playerName, nextRole);
     setAssignments(readAssignments());
+
+    if (supabase && session) {
+      const { data: player } = await supabase.from("players").select("id").eq("name", playerName).maybeSingle();
+      if (!player?.id) return;
+
+      await supabase.from("user_roles").delete().eq("player_id", player.id);
+      if (nextRole !== "player") {
+        await supabase.from("user_roles").insert({ player_id: player.id, role: nextRole });
+      }
+    }
   };
 
   const resetRoles = () => {

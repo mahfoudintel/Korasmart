@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
 import { useLocalProfile } from "@/hooks/use-local-profile";
 import { useMembers } from "@/hooks/use-members";
+import { supabase } from "@/lib/supabase";
 import { formatReservationOpenMessage, getSessionReservationStatus } from "@/lib/workflow-rules";
 import { type Reservation } from "@/lib/reservations";
 
@@ -69,10 +71,12 @@ function promoteWaitingList(reservationAttendance: Record<string, AttendanceReco
 }
 
 export function useAttendance(reservationId?: string, reservation?: Reservation) {
+  const { profile: authProfile, session } = useAuth();
   const { profile } = useLocalProfile();
   const { members } = useMembers();
   const [selectedPlayer, setSelectedPlayer] = useState(members[0]?.name || "");
   const [attendance, setAttendance] = useState<AttendanceMap>({});
+  const remoteEnabled = Boolean(supabase && session);
 
   useEffect(() => {
     if (profile.loggedIn) setSelectedPlayer(profile.playerName);
@@ -86,6 +90,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
   }, [members, selectedPlayer]);
 
   useEffect(() => {
+    if (remoteEnabled) return;
     const saved = window.localStorage.getItem(storageKey);
     if (!saved) return;
 
@@ -94,11 +99,52 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
     } catch {
       window.localStorage.removeItem(storageKey);
     }
-  }, []);
+  }, [remoteEnabled]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadRemoteAttendance() {
+      if (!supabase || !session) return;
+
+      const { data, error } = await supabase
+        .from("attendance")
+        .select("status, joined_at, bookings(external_id), players(name)")
+        .in("status", ["playing", "waiting"]);
+
+      if (cancelled || error || !data) return;
+
+      const nextAttendance: AttendanceMap = {};
+      data.forEach((record) => {
+        const booking = Array.isArray(record.bookings) ? record.bookings[0] : record.bookings;
+        const player = Array.isArray(record.players) ? record.players[0] : record.players;
+        const bookingId = booking?.external_id;
+        const playerName = player?.name;
+        if (!bookingId || !playerName || (record.status !== "playing" && record.status !== "waiting")) return;
+
+        nextAttendance[bookingId] = {
+          ...(nextAttendance[bookingId] || {}),
+          [playerName]: {
+            status: record.status,
+            joinedAt: record.joined_at || new Date().toISOString()
+          }
+        };
+      });
+
+      setAttendance(nextAttendance);
+    }
+
+    loadRemoteAttendance();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
+
+  useEffect(() => {
+    if (remoteEnabled) return;
     window.localStorage.setItem(storageKey, JSON.stringify(attendance));
-  }, [attendance]);
+  }, [attendance, remoteEnabled]);
 
   const reservationAttendance = useMemo(
     () => (reservationId ? attendance[reservationId] || {} : {}),
@@ -142,8 +188,9 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
         ? waitingPlayers.findIndex((record) => record.player === selectedPlayer) + 1
         : 0;
 
-  const setStatus = () => {
+  const setStatus = async () => {
     if (!reservationId || !canSubmitAttendance) return;
+    let nextStatus: AttendanceStatus = "playing";
 
     setAttendance((current) => {
       const reservationRecords = current[reservationId] || {};
@@ -153,6 +200,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
         Object.values(reservationRecords).filter((record) => record.status === "playing").length >= playingLimit
           ? "waiting"
           : "playing";
+      nextStatus = requestedStatus;
 
       const nextReservationAttendance = promoteWaitingList({
         ...reservationRecords,
@@ -170,9 +218,24 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
         [reservationId]: nextReservationAttendance
       };
     });
+
+    if (supabase && session && authProfile) {
+      const { data: booking } = await supabase.from("bookings").select("id").eq("external_id", reservationId).maybeSingle();
+      if (booking?.id) {
+        await supabase.from("attendance").upsert(
+          {
+            booking_id: booking.id,
+            player_id: authProfile.id,
+            status: nextStatus,
+            joined_at: new Date().toISOString()
+          },
+          { onConflict: "booking_id,player_id" }
+        );
+      }
+    }
   };
 
-  const dropOut = () => {
+  const dropOut = async () => {
     if (!reservationId || !canSubmitAttendance) return;
 
     setAttendance((current) => {
@@ -184,6 +247,13 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
         [reservationId]: promoteWaitingList(reservationRecords)
       };
     });
+
+    if (supabase && session && authProfile) {
+      const { data: booking } = await supabase.from("bookings").select("id").eq("external_id", reservationId).maybeSingle();
+      if (booking?.id) {
+        await supabase.from("attendance").delete().eq("booking_id", booking.id).eq("player_id", authProfile.id);
+      }
+    }
   };
 
   return {

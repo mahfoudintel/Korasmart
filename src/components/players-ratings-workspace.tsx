@@ -92,9 +92,9 @@ export function PlayersRatingsWorkspace() {
     }));
   };
 
-  const handleAddMember = () => {
+  const handleAddMember = async () => {
     if (!canEditMembers) return;
-    const result = addMember(memberName);
+    const result = await addMember(memberName);
     setMemberMessage(result.message);
     if (result.ok) setMemberName("");
   };
