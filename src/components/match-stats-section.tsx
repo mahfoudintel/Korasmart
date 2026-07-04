@@ -269,7 +269,7 @@ export function MatchStatsSection() {
                   {canEdit ? (
                     <MatchStatsForm reservation={reservation} playerNames={playerPool} onSubmit={(report) => submitReport(reservation, report)} />
                   ) : (
-                    <p className="mt-4 rounded-2xl bg-white/60 p-4 text-sm font-semibold text-slate-600">Budgeting & Booking officer access is required to update game statistics.</p>
+                    <p className="mt-4 rounded-2xl bg-white/60 p-4 text-sm font-semibold text-slate-600">Superuser, Admin, or Officer access is required to update game statistics.</p>
                   )}
                 </div>
               );

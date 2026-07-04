@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { Camera, ChevronDown, Eye, LogIn, LogOut, Save, ShieldCheck } from "lucide-react";
-import { roleLabels } from "@/lib/access";
+import { canImpersonate, roleLabels } from "@/lib/access";
 import { players } from "@/lib/data";
 import { useLocalProfile } from "@/hooks/use-local-profile";
 import { useRole } from "@/hooks/use-role";
@@ -34,7 +34,7 @@ export function ProfileMenu() {
 
   const initials = (profile.displayName || profile.playerName).slice(0, 1).toUpperCase();
   const avatarSrc = profile.avatarDataUrl || profile.avatarPreset;
-  const canStartImpersonation = profile.loggedIn && role === "admin" && !profile.impersonatorPlayerName;
+  const canStartImpersonation = profile.loggedIn && canImpersonate(role) && !profile.impersonatorPlayerName;
   const impersonationOptions = players.filter((player) => player.name !== profile.playerName);
   const effectiveImpersonationTarget = impersonationOptions.some((player) => player.name === impersonationTarget)
     ? impersonationTarget
@@ -100,7 +100,7 @@ export function ProfileMenu() {
             <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3">
               <p className="text-xs font-black uppercase text-amber-700">Impersonation active</p>
               <p className="mt-1 text-sm font-semibold text-slate-700">
-                Original admin: {profile.impersonatorPlayerName}. You are viewing the app as {profile.playerName}.
+                Original user: {profile.impersonatorPlayerName}. You are viewing the app as {profile.playerName}.
               </p>
               <button
                 onClick={stopImpersonating}

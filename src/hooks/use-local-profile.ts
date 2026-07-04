@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getRoleForPlayer } from "@/lib/access";
+import { canImpersonate, getRoleForPlayer } from "@/lib/access";
 import { players } from "@/lib/data";
 
 export type LocalProfile = {
@@ -144,7 +144,7 @@ export function useLocalProfile() {
   const impersonatePlayer = (playerName: string) => {
     if (!profile.loggedIn) return false;
     const sourcePlayerName = profile.impersonatorPlayerName || profile.playerName;
-    if (getRoleForPlayer(sourcePlayerName) !== "admin") return false;
+    if (!canImpersonate(getRoleForPlayer(sourcePlayerName))) return false;
 
     const user = getDefaultUserForPlayer(playerName);
     if (!user) return false;

@@ -481,7 +481,54 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
     ar: "تتقدم تلقائيا إذا انسحب أحد اللاعبين."
   },
   spot: { fr: "place", ar: "مكان" },
-  position: { fr: "position", ar: "الترتيب" }
+  position: { fr: "position", ar: "الترتيب" },
+  Superuser: { fr: "Superutilisateur", ar: "مستخدم فائق" },
+  Player: { fr: "Joueur", ar: "لاعب" },
+  "Budgeting & Booking officer": { fr: "Responsable budget et reservations", ar: "مسؤول الميزانية والحجوزات" },
+  "Access Control": { fr: "Controle des acces", ar: "إدارة الصلاحيات" },
+  "Superuser access is required to manage roles and impersonation.": {
+    fr: "Un acces superutilisateur est requis pour gerer les roles et l'impersonation.",
+    ar: "صلاحية المستخدم الفائق مطلوبة لإدارة الأدوار والانتحال."
+  },
+  "Najib is Superuser by default. Nawfal is Admin by default.": {
+    fr: "Najib est superutilisateur par defaut. Nawfal est admin par defaut.",
+    ar: "نجيب مستخدم فائق افتراضيا. نوفل Admin افتراضيا."
+  },
+  "Reset defaults": { fr: "Retablir par defaut", ar: "استعادة الافتراضي" },
+  "Full access, role changes, and impersonation.": {
+    fr: "Acces complet, changement des roles et impersonation.",
+    ar: "وصول كامل وتغيير الأدوار والانتحال."
+  },
+  "Bookings, finances, and player management.": {
+    fr: "Reservations, finances et gestion des joueurs.",
+    ar: "الحجوزات والمالية وإدارة اللاعبين."
+  },
+  "Bookings and contribution updates.": {
+    fr: "Reservations et mises a jour des cotisations.",
+    ar: "الحجوزات وتحديث المساهمات."
+  },
+  "Player view, attendance, and personal status.": {
+    fr: "Vue joueur, presence et statut personnel.",
+    ar: "عرض اللاعب والحضور والحالة الشخصية."
+  },
+  "Role changes are applied immediately to the local profile system.": {
+    fr: "Les changements de role sont appliques immediatement au profil local.",
+    ar: "يتم تطبيق تغييرات الأدوار فورا على نظام الملف المحلي."
+  },
+  "Permission Matrix": { fr: "Matrice des permissions", ar: "جدول الصلاحيات" },
+  "Change user access": { fr: "Changer l'acces utilisateur", ar: "تغيير صلاحية المستخدم" },
+  "Impersonate another user": { fr: "Impersoner un autre utilisateur", ar: "انتحال مستخدم آخر" },
+  "All roles": { fr: "Tous les roles", ar: "كل الأدوار" },
+  "Superuser, Admin, Officer": { fr: "Superutilisateur, Admin, Responsable", ar: "مستخدم فائق، Admin، مسؤول" },
+  "Superuser, Admin": { fr: "Superutilisateur, Admin", ar: "مستخدم فائق، Admin" },
+  "Admin or Superuser access is required to add or remove players.": {
+    fr: "Un acces Admin ou Superutilisateur est requis pour ajouter ou retirer des joueurs.",
+    ar: "صلاحية Admin أو مستخدم فائق مطلوبة لإضافة أو حذف اللاعبين."
+  },
+  "Superuser, Admin, or Officer access is required to update game statistics.": {
+    fr: "Un acces Superutilisateur, Admin ou Responsable est requis pour modifier les statistiques.",
+    ar: "صلاحية مستخدم فائق أو Admin أو مسؤول مطلوبة لتحديث الإحصائيات."
+  }
 };
 
 export function translateText(text: string, language: Language) {

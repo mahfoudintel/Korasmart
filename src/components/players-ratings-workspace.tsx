@@ -125,7 +125,7 @@ export function PlayersRatingsWorkspace() {
             {memberMessage && <p className="mt-2 text-xs font-semibold text-slate-500">{memberMessage}</p>}
           </div> : (
             <p className="rounded-2xl border border-white/60 bg-white/55 px-4 py-3 text-sm font-semibold text-slate-600">
-              Admin access is required to add or remove players.
+              Admin or Superuser access is required to add or remove players.
             </p>
           )}
         </div>
