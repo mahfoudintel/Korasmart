@@ -5,8 +5,13 @@ import { LogIn, Save, ShieldCheck } from "lucide-react";
 import { type Session } from "@supabase/supabase-js";
 import { isAuthRequired, usernameToEmail } from "@/lib/auth";
 import { normalizeRole, type UserRole } from "@/lib/access";
+import { players } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { FootballLogo } from "@/components/football-logo";
+
+const localProfileStorageKey = "korasmart-local-profile-v1";
+const localUsersStorageKey = "korasmart-local-users-v1";
+const localProfileChangedEvent = "korasmart-local-profile-changed";
 
 export type MemberProfile = {
   id: string;
@@ -32,7 +37,29 @@ const AuthContext = createContext<AuthContextValue>({
 
 export const useAuth = () => useContext(AuthContext);
 
-function LoginForm() {
+const normalizeLocalUsername = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const defaultLocalUsers = players.map((player, index) => ({
+  username: normalizeLocalUsername(player.name),
+  password: "kora2026",
+  playerName: player.name,
+  avatarPreset: `/images/avatars/avatar-${String((index % 20) + 1).padStart(2, "0")}.png`
+}));
+
+function readLocalLoggedIn() {
+  if (typeof window === "undefined") return false;
+
+  try {
+    const saved = window.localStorage.getItem(localProfileStorageKey);
+    if (!saved) return false;
+    return Boolean((JSON.parse(saved) as { loggedIn?: boolean }).loggedIn);
+  } catch {
+    window.localStorage.removeItem(localProfileStorageKey);
+    return false;
+  }
+}
+
+function LoginForm({ onLocalLogin }: { onLocalLogin?: (username: string, password: string) => boolean }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -40,10 +67,22 @@ function LoginForm() {
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!supabase) return;
 
     setSubmitting(true);
     setError("");
+
+    if (onLocalLogin) {
+      const success = onLocalLogin(username, password);
+      if (!success) setError("Username or password is not correct.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (!supabase) {
+      setError("Login is not configured yet.");
+      setSubmitting(false);
+      return;
+    }
 
     const { error: loginError } = await supabase.auth.signInWithPassword({
       email: usernameToEmail(username),
@@ -194,6 +233,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [loading, setLoading] = useState(Boolean(supabase && isAuthRequired));
+  const [localLoggedIn, setLocalLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (supabase && isAuthRequired) return;
+
+    const syncLocalLogin = () => setLocalLoggedIn(readLocalLoggedIn());
+    syncLocalLogin();
+    window.addEventListener("storage", syncLocalLogin);
+    window.addEventListener(localProfileChangedEvent, syncLocalLogin);
+
+    return () => {
+      window.removeEventListener("storage", syncLocalLogin);
+      window.removeEventListener(localProfileChangedEvent, syncLocalLogin);
+    };
+  }, []);
 
   useEffect(() => {
     if (!supabase || !isAuthRequired) {
@@ -270,6 +324,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   if (supabase && isAuthRequired && !session) {
     return <LoginForm />;
+  }
+
+  if ((!supabase || !isAuthRequired) && !localLoggedIn) {
+    return (
+      <LoginForm
+        onLocalLogin={(username, password) => {
+          const normalizedUsername = normalizeLocalUsername(username);
+          const users = (() => {
+            try {
+              const saved = window.localStorage.getItem(localUsersStorageKey);
+              if (!saved) {
+                window.localStorage.setItem(localUsersStorageKey, JSON.stringify(defaultLocalUsers));
+                return defaultLocalUsers;
+              }
+              return JSON.parse(saved) as { username: string; password: string; playerName: string; avatarPreset: string }[];
+            } catch {
+              return defaultLocalUsers;
+            }
+          })();
+          const user = users.find((item) => item.username === normalizedUsername && item.password === password);
+          if (!user) return false;
+
+          window.localStorage.setItem(
+            localProfileStorageKey,
+            JSON.stringify({
+              username: user.username,
+              playerName: user.playerName,
+              displayName: user.playerName,
+              avatarDataUrl: "",
+              avatarPreset: user.avatarPreset,
+              loggedIn: true
+            })
+          );
+          window.dispatchEvent(new Event(localProfileChangedEvent));
+          setLocalLoggedIn(true);
+          return true;
+        }}
+      />
+    );
   }
 
   if (supabase && isAuthRequired && profile?.must_change_password) {

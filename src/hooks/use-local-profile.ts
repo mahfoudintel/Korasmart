@@ -49,7 +49,7 @@ const defaultProfile: LocalProfile = {
   displayName: players[0].name,
   avatarDataUrl: "",
   avatarPreset: "/images/avatars/avatar-01.png",
-  loggedIn: true
+  loggedIn: false
 };
 
 function readUsers(): LocalUser[] {
