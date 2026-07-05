@@ -1,5 +1,5 @@
 export const authEmailDomain = "korasmart.local";
-export const isAuthRequired = process.env.NEXT_PUBLIC_REQUIRE_AUTH === "true";
+export const isAuthRequired = process.env.NEXT_PUBLIC_REQUIRE_AUTH !== "false";
 
 export const usernameToSlug = (username: string) =>
   username
