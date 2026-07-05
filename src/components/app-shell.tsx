@@ -84,19 +84,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="hidden"><NextMatchAttendance /></div>
         </aside>
 
-        <main className="min-w-0 w-full px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-8">
-          <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
-            <div className="lg:hidden">
+        <main className="min-w-0 w-full px-3 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8 lg:pt-5">
+          <header className="mb-5 grid gap-3 sm:mb-8 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+            <div className="min-w-0 lg:hidden">
               <FootballLogo compact />
             </div>
             <div className="hidden lg:block">
               <h1 className="text-3xl font-extrabold text-slate-900 xl:text-4xl">{pageCopy.title}</h1>
               <p className="mt-2 text-base font-medium text-slate-700">{pageCopy.subtitle}</p>
             </div>
-            <div className="ml-auto flex w-full min-w-0 flex-wrap items-center justify-end gap-2 sm:w-auto sm:gap-3">
+            <div className="flex w-full min-w-0 items-center justify-between gap-2 sm:ml-auto sm:w-auto sm:justify-end sm:gap-3">
               <LanguageSwitcher />
-              <AppNotifications />
-              <ProfileMenu />
+              <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                <AppNotifications />
+                <ProfileMenu />
+              </div>
             </div>
           </header>
 
@@ -107,14 +109,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <footer className="mt-8 hidden text-center text-sm font-semibold text-white/90 lg:block">One team. One dream.</footer>
         </main>
 
-        <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-white/50 bg-white/78 px-3 py-2 shadow-[0_-12px_34px_rgba(38,59,28,.13)] backdrop-blur-[18px] lg:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-white/50 bg-white/82 px-2 py-2 shadow-[0_-12px_34px_rgba(38,59,28,.13)] backdrop-blur-[18px] lg:hidden">
           <div className={cn("mx-auto grid max-w-lg gap-1", canManageRoles(role) ? "grid-cols-6" : "grid-cols-5")}>
             {mobileItems.map((item) => {
               const active = routeGroup === item.href;
               const Icon = item.icon;
               return (
-                <Link key={item.href} href={item.href} className={cn("grid h-14 place-items-center rounded-xl px-1 text-[10px] font-bold text-slate-600", active && "bg-lime-100 text-[#247e24]")}>
-                  <Icon className="h-5 w-5" />
+                <Link key={item.href} href={item.href} className={cn("grid h-14 min-w-0 place-items-center rounded-xl px-0.5 text-[9px] font-bold text-slate-600 sm:px-1 sm:text-[10px]", active && "bg-lime-100 text-[#247e24]")}>
+                  <Icon className="h-5 w-5 shrink-0" />
                   <span className="max-w-full truncate">{item.mobileLabel ?? item.label}</span>
                 </Link>
               );

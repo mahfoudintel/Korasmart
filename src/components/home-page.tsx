@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Trophy,
   Users,
+  UserX,
   WalletCards
 } from "lucide-react";
 import { Card, SectionTitle } from "@/components/ui/card";
@@ -87,12 +88,23 @@ export function HomePage() {
   const nextReservation = getNextReservation(reservations);
   const upcomingReservations = getUpcomingReservations(reservations);
   const lastReservation = getPastReservations(reservations)[0];
-  const { summary, confirmedPlayers, currentStatus, reservationStatus } = useAttendance(nextReservation?.id, nextReservation);
+  const {
+    summary,
+    confirmedPlayers,
+    waitingPlayers,
+    currentStatus,
+    selectedPosition,
+    reservationStatus,
+    canSubmitAttendance,
+    setStatus,
+    dropOut
+  } = useAttendance(nextReservation?.id, nextReservation);
   const { transactionTotal } = useFinanceTransactions();
   const currentBalance = financeSnapshot.balance + transactionTotal;
   const teamA = confirmedPlayers.slice(0, 5).map((player) => player.player);
   const teamB = confirmedPlayers.slice(5, 10).map((player) => player.player);
   const openAt = nextReservation ? getReservationOpenAt({ date: nextReservation.date }) : null;
+  const attendanceIsOpen = reservationStatus === "open";
 
   if (!nextReservation) {
     return (
@@ -106,8 +118,126 @@ export function HomePage() {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_390px]">
-        <section className="rounded-[22px] border border-white/10 bg-[#061827]/96 p-5 text-white shadow-[0_24px_54px_rgba(1,13,25,.24)] backdrop-blur-[18px]">
+      {attendanceIsOpen && (
+        <section className="overflow-hidden rounded-[20px] border border-lime-200 bg-white/82 text-slate-950 shadow-[0_18px_44px_rgba(47,158,47,.2)] backdrop-blur-[22px] sm:rounded-[28px] sm:shadow-[0_26px_70px_rgba(47,158,47,.22)]">
+          <div className="grid gap-0 xl:grid-cols-[minmax(0,1.15fr)_420px]">
+            <div className="p-4 sm:p-7">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span className="rounded-full bg-[#3dad3d] px-3 py-1.5 text-[11px] font-black uppercase tracking-[.06em] text-white sm:px-4 sm:py-2 sm:text-xs">
+                  Attendance open
+                </span>
+                <span className="rounded-full bg-lime-100 px-3 py-1.5 text-[11px] font-black text-[#247e24] sm:px-4 sm:py-2 sm:text-xs">
+                  {summary.playing}/{playingLimit} confirmed
+                </span>
+                {summary.waiting > 0 && (
+                  <span className="rounded-full bg-amber-100 px-3 py-1.5 text-[11px] font-black text-amber-700 sm:px-4 sm:py-2 sm:text-xs">
+                    {summary.waiting} waiting
+                  </span>
+                )}
+              </div>
+
+              <h2 className="mt-4 max-w-3xl text-2xl font-black leading-tight text-slate-950 sm:mt-5 sm:text-5xl">
+                Are you playing this match?
+              </h2>
+
+              <div className="mt-4 grid gap-2 text-sm font-extrabold text-slate-800 sm:mt-5 sm:flex sm:flex-wrap sm:gap-x-5 sm:gap-y-3 sm:text-base">
+                <span className="inline-flex min-w-0 items-center gap-2">
+                  <CalendarDays className="h-5 w-5 shrink-0 text-[#2f9e2f]" />
+                  {formatReservationDate(nextReservation.date)}
+                </span>
+                <span className="inline-flex min-w-0 items-center gap-2">
+                  <Clock3 className="h-5 w-5 shrink-0 text-[#2f9e2f]" />
+                  {nextReservation.time}
+                </span>
+                <span className="inline-flex min-w-0 items-center gap-2">
+                  <MapPin className="h-5 w-5 shrink-0 text-[#2f9e2f]" />
+                  <ReservationMapLink reservation={nextReservation} className="min-w-0 truncate text-slate-800" />
+                </span>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:mt-7 sm:grid-cols-2">
+                <button
+                  onClick={setStatus}
+                  disabled={!canSubmitAttendance}
+                  className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-[#3dad3d] px-4 text-base font-black text-white shadow-[0_16px_30px_rgba(47,158,47,.24)] transition hover:bg-[#319c31] disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-16 sm:px-5 sm:text-lg"
+                >
+                  <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
+                  {summary.playing >= playingLimit && currentStatus !== "playing" ? "Join waiting list" : "Attending"}
+                </button>
+                <button
+                  onClick={dropOut}
+                  disabled={!canSubmitAttendance}
+                  className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl border border-orange-200 bg-orange-50 px-4 text-base font-black text-orange-700 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-16 sm:px-5 sm:text-lg"
+                >
+                  <UserX className="h-5 w-5 sm:h-6 sm:w-6" />
+                  Not attending
+                </button>
+              </div>
+
+              <p className="mt-4 rounded-2xl border border-white/80 bg-white/65 p-3 text-sm font-semibold text-slate-600 sm:p-4">
+                {currentStatus === "playing" && (
+                  <span><b className="text-[#247e24]">You are confirmed</b> <span>as player</span> #{selectedPosition}.</span>
+                )}
+                {currentStatus === "waiting" && (
+                  <span><b className="text-amber-700">You are on the waiting list</b> at position #{selectedPosition}.</span>
+                )}
+                {!currentStatus && <span>Choose one option now so the group can plan teams clearly.</span>}
+              </p>
+            </div>
+
+            <div className="border-t border-white/65 bg-[#061827]/95 p-4 text-white sm:p-5 xl:border-l xl:border-t-0">
+              <p className="text-xs font-black uppercase tracking-[.1em] text-lime-300">Live attendance</p>
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center sm:mt-5">
+                <div className="rounded-2xl bg-white/10 p-2 sm:p-3">
+                  <p className="text-2xl font-black text-lime-300 sm:text-3xl">{summary.playing}</p>
+                  <p className="mt-1 text-xs font-bold text-white/70">Attending</p>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-2 sm:p-3">
+                  <p className="text-2xl font-black text-orange-300 sm:text-3xl">{summary.waiting}</p>
+                  <p className="mt-1 text-xs font-bold text-white/70">Waiting</p>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-2 sm:p-3">
+                  <p className="text-2xl font-black text-white sm:text-3xl">{summary.notAttending}</p>
+                  <p className="mt-1 text-xs font-bold text-white/70">Out</p>
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <p className="text-xs font-black uppercase tracking-[.08em] text-white/55">Confirmed</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {confirmedPlayers.length ? (
+                    confirmedPlayers.map((record, index) => (
+                      <span key={record.player} className="rounded-full bg-lime-300 px-3 py-1 text-xs font-black text-[#061827]">
+                        {index + 1}. {record.player}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm font-semibold text-white/55">No confirmed players yet.</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <p className="text-xs font-black uppercase tracking-[.08em] text-white/55">Waiting list</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {waitingPlayers.length ? (
+                    waitingPlayers.map((record, index) => (
+                      <span key={record.player} className="rounded-full bg-orange-300 px-3 py-1 text-xs font-black text-[#061827]">
+                        {index + 1}. {record.player}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm font-semibold text-white/55">Waiting list is empty.</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <div className={attendanceIsOpen ? "hidden gap-5 md:grid xl:grid-cols-[minmax(0,1.35fr)_390px]" : "grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_390px]"}>
+        <section className={attendanceIsOpen ? "rounded-[22px] border border-white/10 bg-[#061827]/88 p-5 text-white shadow-[0_16px_34px_rgba(1,13,25,.14)] backdrop-blur-[18px]" : "rounded-[22px] border border-white/10 bg-[#061827]/96 p-5 text-white shadow-[0_24px_54px_rgba(1,13,25,.24)] backdrop-blur-[18px]"}>
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px]">
             <div>
               <p className="text-sm font-black uppercase tracking-[.06em] text-lime-300">Next Match</p>
@@ -153,7 +283,7 @@ export function HomePage() {
         <TeamPreview teamA={teamA} teamB={teamB} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className={attendanceIsOpen ? "hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-4" : "grid gap-4 md:grid-cols-2 xl:grid-cols-4"}>
         <StatusCard icon={WalletCards} title="Booking Status" href="/finances" action="View finances">
           <p className="text-sm font-black text-red-600">Not paid</p>
           <p className="mt-5 text-sm text-slate-500">Total</p>

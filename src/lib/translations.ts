@@ -550,7 +550,16 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   },
   "Rating saved": { fr: "Note enregistree", ar: "تم حفظ التقييم" },
   votes: { fr: "votes", ar: "تصويتات" },
-  "Save rating": { fr: "Enregistrer la note", ar: "حفظ التقييم" }
+  "Save rating": { fr: "Enregistrer la note", ar: "حفظ التقييم" },
+  "Attendance open": { fr: "Presence ouverte", ar: "الحضور مفتوح" },
+  "Are you playing this match?": { fr: "Tu joues ce match ?", ar: "هل ستلعب هذه المباراة؟" },
+  "Join waiting list": { fr: "Rejoindre l'attente", ar: "انضم لقائمة الانتظار" },
+  "as player": { fr: "comme joueur", ar: "كلاعب" },
+  "Choose one option now so the group can plan teams clearly.": {
+    fr: "Choisis une option maintenant pour aider le groupe a organiser les equipes.",
+    ar: "اختر خيارا الآن حتى يتمكن الفريق من تنظيم الفرق بوضوح."
+  },
+  "Live attendance": { fr: "Presence en direct", ar: "الحضور المباشر" }
 };
 
 export function translateText(text: string, language: Language) {
