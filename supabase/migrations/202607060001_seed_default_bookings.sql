@@ -1,4 +1,12 @@
-create unique index if not exists bookings_external_id_key
+alter table bookings
+  add column if not exists external_id text;
+
+alter table bookings
+  drop constraint if exists bookings_external_id_key;
+
+drop index if exists bookings_external_id_key;
+
+create unique index bookings_external_id_key
   on bookings(external_id);
 
 insert into bookings (
