@@ -43,6 +43,30 @@ alter table ratings
   add constraint ratings_ball_control_check check (ball_control >= 0 and ball_control <= 10),
   add constraint ratings_stamina_check check (stamina >= 0 and stamina <= 10);
 
+create table if not exists finance_transactions (
+  id uuid primary key default gen_random_uuid(),
+  type text not null check (type in ('booking_cost', 'booking_cost_reversal', 'manual_adjustment')),
+  amount numeric(10,2) not null,
+  currency text not null default 'dh',
+  booking_id uuid references bookings(id) on delete set null,
+  reversed_transaction_id uuid references finance_transactions(id) on delete set null,
+  note text not null,
+  created_by uuid references players(id) on delete set null,
+  created_at timestamptz not null default now(),
+  constraint booking_cost_negative check (type <> 'booking_cost' or amount < 0),
+  constraint booking_reversal_positive check (type <> 'booking_cost_reversal' or amount > 0)
+);
+
+create unique index if not exists one_booking_cost_per_booking
+  on finance_transactions (booking_id)
+  where type = 'booking_cost' and booking_id is not null;
+
+create unique index if not exists one_booking_cost_reversal
+  on finance_transactions (reversed_transaction_id)
+  where type = 'booking_cost_reversal' and reversed_transaction_id is not null;
+
+alter table finance_transactions enable row level security;
+
 alter table user_roles
   drop constraint if exists user_roles_role_check,
   add constraint user_roles_role_check check (role in ('superuser', 'admin', 'budgeting_booking_officer', 'player'));
