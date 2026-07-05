@@ -17,6 +17,7 @@ export type MemberProfile = {
   id: string;
   name: string;
   username: string | null;
+  avatar_preset: string | null;
   role: UserRole;
   must_change_password: boolean | null;
 };
@@ -283,7 +284,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const { data } = await supabase
         .from("players")
-        .select("id, name, username, must_change_password, user_roles(role)")
+        .select("id, name, username, avatar_preset, must_change_password, user_roles(role)")
         .eq("auth_user_id", session.user.id)
         .maybeSingle();
 
@@ -301,8 +302,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     loadProfile();
 
+    const client = supabase;
+    if (!client || !session?.user.id) return;
+
+    const channel = client
+      .channel(`korasmart-profile-${session.user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "players", filter: `auth_user_id=eq.${session.user.id}` },
+        () => {
+          void loadProfile();
+        }
+      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, () => {
+        void loadProfile();
+      })
+      .subscribe();
+
     return () => {
       cancelled = true;
+      void client.removeChannel(channel);
     };
   }, [session?.user.id]);
 

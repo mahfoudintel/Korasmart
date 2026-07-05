@@ -17,7 +17,7 @@ export function AppNotifications() {
           setOpen(nextOpen);
           if (nextOpen) markAllRead();
         }}
-        className="relative grid h-11 w-11 place-items-center rounded-full border border-white/60 bg-white/70 text-slate-800 shadow-[0_10px_24px_rgba(38,59,28,.1)] backdrop-blur-xl"
+        className="relative grid h-10 w-10 place-items-center rounded-full border border-white/60 bg-white/78 text-slate-800 shadow-[0_10px_24px_rgba(38,59,28,.1)] backdrop-blur-xl sm:h-11 sm:w-11"
         aria-label="Notifications"
       >
         {unreadCount > 0 ? <BellRing className="h-5 w-5 text-[#2f9e2f]" /> : <Bell className="h-5 w-5" />}

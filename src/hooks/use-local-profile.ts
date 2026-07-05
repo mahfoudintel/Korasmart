@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { canImpersonate, getRoleForPlayer } from "@/lib/access";
 import { players } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
 
 export type LocalProfile = {
   username: string;
@@ -117,7 +118,7 @@ export function useLocalProfile() {
       playerName: authProfile.name,
       displayName: authProfile.name,
       avatarDataUrl: "",
-      avatarPreset: getDefaultUserForPlayer(authProfile.name)?.avatarPreset || "/images/avatars/avatar-01.png",
+      avatarPreset: authProfile.avatar_preset || getDefaultUserForPlayer(authProfile.name)?.avatarPreset || "/images/avatars/avatar-01.png",
       loggedIn: true,
       impersonatorUsername: undefined,
       impersonatorPlayerName: undefined,
@@ -136,7 +137,12 @@ export function useLocalProfile() {
   };
 
   const updateProfile = (patch: Partial<LocalProfile>) => {
-    setProfile({ ...profile, ...patch });
+    const nextProfile = { ...profile, ...patch };
+    setProfile(nextProfile);
+
+    if (supabase && session && authProfile && Object.prototype.hasOwnProperty.call(patch, "avatarPreset")) {
+      void supabase.from("players").update({ avatar_preset: nextProfile.avatarPreset }).eq("id", authProfile.id);
+    }
   };
 
   const login = () => updateProfile({ loggedIn: true });

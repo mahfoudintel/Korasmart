@@ -54,11 +54,11 @@ export function ProfileMenu() {
     <div className="relative">
       <button
         onClick={() => setOpen((value) => !value)}
-        className="flex h-12 items-center gap-3 rounded-full border border-white/60 bg-white/70 px-2 pr-3 text-left text-slate-950 shadow-[0_10px_24px_rgba(38,59,28,.1)] backdrop-blur-xl"
+        className="flex h-10 items-center gap-2 rounded-full border border-white/60 bg-white/78 px-1.5 text-left text-slate-950 shadow-[0_10px_24px_rgba(38,59,28,.1)] backdrop-blur-xl sm:h-12 sm:gap-3 sm:px-2 sm:pr-3"
       >
-        <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-lime-300 bg-gradient-to-br from-white to-zinc-500 text-lg font-black text-black">
+        <span className="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-lime-300 bg-gradient-to-br from-white to-zinc-500 text-sm font-black text-black sm:h-10 sm:w-10 sm:text-lg">
           {avatarSrc ? (
-            <Image src={avatarSrc} alt={profile.displayName} fill sizes="40px" className="object-cover" />
+            <Image src={avatarSrc} alt={profile.displayName} fill sizes="(max-width: 640px) 32px, 40px" className="object-cover" />
           ) : (
             initials
           )}

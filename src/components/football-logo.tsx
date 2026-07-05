@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-export function FootballLogo({ compact = false, inverse = false }: { compact?: boolean; inverse?: boolean }) {
+export function FootballLogo({ compact = false, inverse = false, mobileTight = false }: { compact?: boolean; inverse?: boolean; mobileTight?: boolean }) {
   return (
     <Link
       href="/"
@@ -10,19 +10,20 @@ export function FootballLogo({ compact = false, inverse = false }: { compact?: b
       className={cn(
         "inline-flex items-center gap-3 rounded-2xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-lime-500",
         compact ? "gap-2" : "w-full",
+        mobileTight && "gap-2",
       )}
     >
-      <span className={cn("relative shrink-0", compact ? "h-11 w-11" : "h-14 w-14")}>
+      <span className={cn("relative shrink-0", compact ? "h-11 w-11" : "h-14 w-14", mobileTight && "h-9 w-9 sm:h-11 sm:w-11")}>
         <Image
           src="/images/korasmart-sport-tech-logo.png"
           alt=""
           fill
           priority
-          sizes={compact ? "44px" : "56px"}
+          sizes={mobileTight ? "(max-width: 640px) 36px, 44px" : compact ? "44px" : "56px"}
           className="object-contain"
         />
       </span>
-      <span className={cn("min-w-0 whitespace-nowrap text-[1.34rem] font-black italic leading-none tracking-normal", inverse ? "text-white" : "text-slate-950")}>
+      <span className={cn("min-w-0 whitespace-nowrap text-[1.34rem] font-black italic leading-none tracking-normal", mobileTight && "text-[1.12rem] sm:text-[1.34rem]", inverse ? "text-white" : "text-slate-950")}>
         KORA<span className="text-[#2f9e2f]">SMART</span>
       </span>
     </Link>

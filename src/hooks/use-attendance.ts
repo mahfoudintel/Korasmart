@@ -136,8 +136,16 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
 
     loadRemoteAttendance();
 
+    const channel = supabase
+      ?.channel("korasmart-attendance-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "attendance" }, () => {
+        void loadRemoteAttendance();
+      })
+      .subscribe();
+
     return () => {
       cancelled = true;
+      if (channel) void supabase?.removeChannel(channel);
     };
   }, [session]);
 
@@ -221,11 +229,15 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
 
     if (supabase && session && authProfile) {
       const { data: booking } = await supabase.from("bookings").select("id").eq("external_id", reservationId).maybeSingle();
-      if (booking?.id) {
+      const playerId =
+        selectedPlayer === authProfile.name
+          ? authProfile.id
+          : (await supabase.from("players").select("id").eq("name", selectedPlayer).maybeSingle()).data?.id;
+      if (booking?.id && playerId) {
         await supabase.from("attendance").upsert(
           {
             booking_id: booking.id,
-            player_id: authProfile.id,
+            player_id: playerId,
             status: nextStatus,
             joined_at: new Date().toISOString()
           },
@@ -250,8 +262,12 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
 
     if (supabase && session && authProfile) {
       const { data: booking } = await supabase.from("bookings").select("id").eq("external_id", reservationId).maybeSingle();
-      if (booking?.id) {
-        await supabase.from("attendance").delete().eq("booking_id", booking.id).eq("player_id", authProfile.id);
+      const playerId =
+        selectedPlayer === authProfile.name
+          ? authProfile.id
+          : (await supabase.from("players").select("id").eq("name", selectedPlayer).maybeSingle()).data?.id;
+      if (booking?.id && playerId) {
+        await supabase.from("attendance").delete().eq("booking_id", booking.id).eq("player_id", playerId);
       }
     }
   };
