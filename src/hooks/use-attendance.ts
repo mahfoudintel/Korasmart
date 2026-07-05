@@ -138,7 +138,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
     loadRemoteAttendance();
 
     const channel = client
-      ?.channel("korasmart-attendance-sync")
+      ?.channel(`korasmart-attendance-sync-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "attendance" }, () => {
         void loadRemoteAttendance();
       })
