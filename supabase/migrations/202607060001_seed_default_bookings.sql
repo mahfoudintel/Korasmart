@@ -1,3 +1,6 @@
+create unique index if not exists bookings_external_id_key
+  on bookings(external_id);
+
 insert into bookings (
   external_id,
   starts_at,

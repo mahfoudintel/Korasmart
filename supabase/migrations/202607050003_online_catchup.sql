@@ -96,8 +96,7 @@ alter table bookings
   add column if not exists external_id text;
 
 create unique index if not exists bookings_external_id_key
-  on bookings(external_id)
-  where external_id is not null;
+  on bookings(external_id);
 
 create table if not exists matches (
   id uuid primary key default gen_random_uuid(),
