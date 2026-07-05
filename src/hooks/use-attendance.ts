@@ -103,11 +103,12 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
 
   useEffect(() => {
     let cancelled = false;
+    const client = supabase;
 
     async function loadRemoteAttendance() {
-      if (!supabase || !session) return;
+      if (!client || !session) return;
 
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from("attendance")
         .select("status, joined_at, bookings(external_id), players(name)")
         .in("status", ["playing", "waiting"]);
@@ -136,7 +137,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
 
     loadRemoteAttendance();
 
-    const channel = supabase
+    const channel = client
       ?.channel("korasmart-attendance-sync")
       .on("postgres_changes", { event: "*", schema: "public", table: "attendance" }, () => {
         void loadRemoteAttendance();
@@ -145,7 +146,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
 
     return () => {
       cancelled = true;
-      if (channel) void supabase?.removeChannel(channel);
+      if (channel) void client?.removeChannel(channel);
     };
   }, [session]);
 

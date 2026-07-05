@@ -60,6 +60,27 @@ function readLocalLoggedIn() {
   }
 }
 
+async function loadRemoteProfile(userId: string) {
+  if (!supabase) return null;
+
+  const baseSelect = "id, name, username, must_change_password, user_roles(role)";
+  const withAvatar = await supabase
+    .from("players")
+    .select(`id, name, username, avatar_preset, must_change_password, user_roles(role)`)
+    .eq("auth_user_id", userId)
+    .maybeSingle();
+
+  if (!withAvatar.error) return withAvatar.data;
+
+  const fallback = await supabase
+    .from("players")
+    .select(baseSelect)
+    .eq("auth_user_id", userId)
+    .maybeSingle();
+
+  return fallback.data ? { ...fallback.data, avatar_preset: null } : null;
+}
+
 function LoginForm({ onLocalLogin }: { onLocalLogin?: (username: string, password: string) => boolean }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -282,11 +303,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const { data } = await supabase
-        .from("players")
-        .select("id, name, username, avatar_preset, must_change_password, user_roles(role)")
-        .eq("auth_user_id", session.user.id)
-        .maybeSingle();
+      const data = await loadRemoteProfile(session.user.id);
 
       const roles = Array.isArray(data?.user_roles) ? data.user_roles.map((item: { role?: string }) => item.role) : [];
       const role = roles.includes("superuser")
