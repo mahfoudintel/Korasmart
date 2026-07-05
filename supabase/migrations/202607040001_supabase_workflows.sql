@@ -5,7 +5,20 @@ alter table bookings
   add column if not exists match_report jsonb;
 
 alter table attendance
-  add constraint attendance_booking_player_key unique (booking_id, player_id);
+  add column if not exists booking_id uuid references bookings(id) on delete cascade;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'attendance_booking_player_key'
+      and conrelid = 'attendance'::regclass
+  ) then
+    alter table attendance
+      add constraint attendance_booking_player_key unique (booking_id, player_id);
+  end if;
+end $$;
 
 alter table ratings
   add column if not exists passing_accuracy numeric(4,2),
