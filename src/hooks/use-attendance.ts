@@ -71,11 +71,12 @@ function promoteWaitingList(reservationAttendance: Record<string, AttendanceReco
 }
 
 export function useAttendance(reservationId?: string, reservation?: Reservation) {
-  const { profile: authProfile, session } = useAuth();
+  const { session } = useAuth();
   const { profile } = useLocalProfile();
   const { members } = useMembers();
   const [selectedPlayer, setSelectedPlayer] = useState(members[0]?.name || "");
   const [attendance, setAttendance] = useState<AttendanceMap>({});
+  const [saveError, setSaveError] = useState("");
   const remoteEnabled = Boolean(supabase && session);
 
   useEffect(() => {
@@ -200,6 +201,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
   const setStatus = async () => {
     if (!reservationId || !canSubmitAttendance) return;
     let nextStatus: AttendanceStatus = "playing";
+    setSaveError("");
 
     setAttendance((current) => {
       const reservationRecords = current[reservationId] || {};
@@ -228,34 +230,31 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
       };
     });
 
-    if (supabase && session && authProfile) {
-      const { data: booking } = await supabase.from("bookings").select("id").eq("external_id", reservationId).maybeSingle();
-      const playerId =
-        selectedPlayer === authProfile.name
-          ? authProfile.id
-          : (await supabase.from("players").select("id").eq("name", selectedPlayer).maybeSingle()).data?.id;
-      if (booking?.id && playerId) {
-        const payload = {
-          booking_id: booking.id,
-          player_id: playerId,
-          status: nextStatus,
-          joined_at: new Date().toISOString()
-        };
-        const { data: updated } = await supabase
-          .from("attendance")
-          .update(payload)
-          .eq("booking_id", booking.id)
-          .eq("player_id", playerId)
-          .select("id")
-          .limit(1);
+    if (supabase && session) {
+      const { error } = await supabase.rpc("korasmart_save_attendance", {
+        p_booking_external_id: reservationId,
+        p_player_name: selectedPlayer,
+        p_status: nextStatus
+      });
 
-        if (!updated?.length) await supabase.from("attendance").insert(payload);
+      if (error) {
+        setSaveError(error.message || "Attendance could not be saved.");
+        setAttendance((current) => {
+          const reservationRecords = { ...(current[reservationId] || {}) };
+          delete reservationRecords[selectedPlayer];
+
+          return {
+            ...current,
+            [reservationId]: promoteWaitingList(reservationRecords)
+          };
+        });
       }
     }
   };
 
   const dropOut = async () => {
     if (!reservationId || !canSubmitAttendance) return;
+    setSaveError("");
 
     setAttendance((current) => {
       const reservationRecords = { ...(current[reservationId] || {}) };
@@ -267,14 +266,14 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
       };
     });
 
-    if (supabase && session && authProfile) {
-      const { data: booking } = await supabase.from("bookings").select("id").eq("external_id", reservationId).maybeSingle();
-      const playerId =
-        selectedPlayer === authProfile.name
-          ? authProfile.id
-          : (await supabase.from("players").select("id").eq("name", selectedPlayer).maybeSingle()).data?.id;
-      if (booking?.id && playerId) {
-        await supabase.from("attendance").delete().eq("booking_id", booking.id).eq("player_id", playerId);
+    if (supabase && session) {
+      const { error } = await supabase.rpc("korasmart_delete_attendance", {
+        p_booking_external_id: reservationId,
+        p_player_name: selectedPlayer
+      });
+
+      if (error) {
+        setSaveError(error.message || "Attendance could not be saved.");
       }
     }
   };
@@ -292,6 +291,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
     reservationStatus,
     canSubmitAttendance,
     attendanceMessage,
+    saveError,
     setStatus,
     dropOut
   };

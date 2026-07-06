@@ -42,6 +42,7 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
     reservationStatus,
     canSubmitAttendance,
     attendanceMessage,
+    saveError,
     setStatus,
     dropOut
   } = useAttendance(nextReservation?.id, nextReservation);
@@ -134,6 +135,12 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
           {currentStatus ? "Drop out" : "Out"}
         </button>
       </div>
+
+      {saveError && (
+        <p className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 p-3 text-xs font-bold text-orange-700">
+          {saveError}
+        </p>
+      )}
 
       {(currentStatus || canSubmitAttendance) && <div className="mt-3 rounded-2xl border border-white/60 bg-white/55 p-3 text-xs text-slate-600">
         {currentStatus === "playing" && <span><b className="text-[#2f9e2f]">Confirmed</b> spot #{selectedPosition}. Use Drop out if something comes up.</span>}
