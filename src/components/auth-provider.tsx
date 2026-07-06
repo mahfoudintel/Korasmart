@@ -251,10 +251,33 @@ function ChangePasswordForm({ profile }: { profile: MemberProfile | null }) {
   );
 }
 
+function ProfileLinkError({ onSignOut }: { onSignOut: () => Promise<void> }) {
+  return (
+    <main className="field-bg grid min-h-screen place-items-center px-4 py-10">
+      <div className="fixed inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.86),rgba(255,255,255,.54),rgba(255,255,255,.18))]" />
+      <section className="relative w-full max-w-md rounded-[28px] border border-white/70 bg-white/75 p-6 text-slate-950 shadow-[0_24px_70px_rgba(2,12,27,.2)] backdrop-blur-[20px]">
+        <FootballLogo compact />
+        <h1 className="mt-8 text-3xl font-black text-slate-950">Profile not linked</h1>
+        <p className="mt-3 text-sm leading-6 font-semibold text-slate-600">
+          This login exists, but it is not connected to a KoraSmart player profile yet.
+        </p>
+        <button
+          onClick={onSignOut}
+          className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#3dad3d] font-black text-white shadow-[0_12px_24px_rgba(47,158,47,.22)] transition hover:bg-[#319c31]"
+        >
+          Back to sign in
+        </button>
+      </section>
+    </main>
+  );
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [loading, setLoading] = useState(Boolean(supabase && isAuthRequired));
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileLoadComplete, setProfileLoadComplete] = useState(false);
   const [localLoggedIn, setLocalLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -300,8 +323,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function loadProfile() {
       if (!supabase || !isAuthRequired || !session?.user.id) {
         setProfile(null);
+        setProfileLoadComplete(false);
+        setProfileLoading(false);
         return;
       }
+
+      setProfileLoading(true);
+      setProfileLoadComplete(false);
 
       const data = await loadRemoteProfile(session.user.id);
 
@@ -314,7 +342,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ? "budgeting_booking_officer"
             : "player";
 
-      if (!cancelled) setProfile(data ? { ...data, role: normalizeRole(role) } : null);
+      if (!cancelled) {
+        setProfile(data ? { ...data, role: normalizeRole(role) } : null);
+        setProfileLoadComplete(true);
+        setProfileLoading(false);
+      }
     }
 
     loadProfile();
@@ -349,6 +381,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       signOut: async () => {
         await supabase?.auth.signOut();
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem(localProfileStorageKey);
+          window.dispatchEvent(new Event(localProfileChangedEvent));
+        }
       }
     }),
     [loading, profile, session]
@@ -360,6 +396,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   if (supabase && isAuthRequired && !session) {
     return <LoginForm />;
+  }
+
+  if (supabase && isAuthRequired && session && !profile && (profileLoading || !profileLoadComplete)) {
+    return <main className="field-bg grid min-h-screen place-items-center text-lg font-black text-lime-300">Loading player profile...</main>;
+  }
+
+  if (supabase && isAuthRequired && session && profileLoadComplete && !profile) {
+    return <ProfileLinkError onSignOut={value.signOut} />;
   }
 
   if ((!supabase || !isAuthRequired) && !localLoggedIn) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { canImpersonate, getRoleForPlayer } from "@/lib/access";
 import { players } from "@/lib/data";
@@ -96,6 +96,25 @@ function saveProfile(profile: LocalProfile) {
 export function useLocalProfile() {
   const { profile: authProfile, session, signOut } = useAuth();
   const [profile, setProfileState] = useState<LocalProfile>(defaultProfile);
+  const effectiveProfile = useMemo<LocalProfile>(() => {
+    if (!session || !authProfile) return profile;
+    if (profile.impersonatorPlayerName) return { ...profile, loggedIn: true };
+
+    return {
+      ...profile,
+      username: authProfile.username || normalizeUsername(authProfile.name),
+      playerName: authProfile.name,
+      displayName: authProfile.name,
+      avatarDataUrl: "",
+      avatarPreset: authProfile.avatar_preset || getDefaultUserForPlayer(authProfile.name)?.avatarPreset || "/images/avatars/avatar-01.png",
+      loggedIn: true,
+      impersonatorUsername: profile.impersonatorUsername,
+      impersonatorPlayerName: profile.impersonatorPlayerName,
+      impersonatorDisplayName: profile.impersonatorDisplayName,
+      impersonatorAvatarDataUrl: profile.impersonatorAvatarDataUrl,
+      impersonatorAvatarPreset: profile.impersonatorAvatarPreset
+    };
+  }, [authProfile, profile, session]);
 
   useEffect(() => {
     const syncProfile = () => setProfileState(readProfile());
@@ -219,7 +238,7 @@ export function useLocalProfile() {
   };
 
   return {
-    profile,
+    profile: effectiveProfile,
     setProfile,
     updateProfile,
     login,
