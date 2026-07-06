@@ -14,7 +14,9 @@ type CheckResult = {
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 
-async function withTimeout(input: RequestInfo | URL, init?: RequestInit, timeoutMs = 8000) {
+const checkTimeoutMs = 6000;
+
+async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit, timeoutMs = checkTimeoutMs) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 
@@ -23,6 +25,15 @@ async function withTimeout(input: RequestInfo | URL, init?: RequestInit, timeout
   } finally {
     window.clearTimeout(timeout);
   }
+}
+
+async function promiseWithTimeout<T>(promise: Promise<T>, label: string, timeoutMs = checkTimeoutMs) {
+  return await Promise.race<T>([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(`${label} timed out after ${Math.round(timeoutMs / 1000)} seconds.`)), timeoutMs);
+    })
+  ]);
 }
 
 function StatusIcon({ status }: { status: CheckStatus }) {
@@ -61,23 +72,27 @@ export default function NetworkCheckPage() {
 
   const runChecks = useCallback(async () => {
     setRunning(true);
-    const next: CheckResult[] = [];
+    setResults([]);
 
-    next.push({
+    const appendResult = (result: CheckResult) => {
+      setResults((current) => [...current, result]);
+    };
+
+    appendResult({
       label: "Browser network",
       status: navigator.onLine ? "ok" : "fail",
       detail: navigator.onLine ? "The browser says this device is online." : "The browser says this device is offline."
     });
 
     try {
-      const response = await withTimeout("/", { cache: "no-store" });
-      next.push({
+      const response = await fetchWithTimeout("/", { cache: "no-store" });
+      appendResult({
         label: "KoraSmart / Vercel",
         status: response.ok ? "ok" : "fail",
         detail: `App origin answered with HTTP ${response.status}.`
       });
     } catch (error) {
-      next.push({
+      appendResult({
         label: "KoraSmart / Vercel",
         status: "fail",
         detail: error instanceof Error ? error.message : "Could not reach the app origin."
@@ -85,27 +100,27 @@ export default function NetworkCheckPage() {
     }
 
     if (!supabaseUrl || !supabase) {
-      next.push({
+      appendResult({
         label: "Supabase configuration",
         status: "fail",
         detail: "NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is missing in Vercel."
       });
     } else {
-      next.push({
+      appendResult({
         label: "Supabase configuration",
         status: "ok",
         detail: `Configured host: ${supabaseHost}.`
       });
 
       try {
-        const response = await withTimeout(`${supabaseUrl}/auth/v1/health`, { cache: "no-store" });
-        next.push({
+        const response = await fetchWithTimeout(`${supabaseUrl}/auth/v1/health`, { cache: "no-store" });
+        appendResult({
           label: "Supabase Auth reachability",
           status: response.ok ? "ok" : "fail",
           detail: `Supabase Auth answered with HTTP ${response.status}.`
         });
       } catch (error) {
-        next.push({
+        appendResult({
           label: "Supabase Auth reachability",
           status: "fail",
           detail: error instanceof Error ? error.message : "Could not reach Supabase Auth."
@@ -113,23 +128,23 @@ export default function NetworkCheckPage() {
       }
 
       try {
-        const { data, error } = await supabase.auth.getSession();
-        next.push({
+        const { data, error } = await promiseWithTimeout(supabase.auth.getSession(), "Supabase session check");
+        appendResult({
           label: "Current login session",
           status: error ? "fail" : "ok",
           detail: error ? error.message : data.session ? `Logged in as ${data.session.user.email || "a Supabase user"}.` : "No active login session on this browser."
         });
 
         if (data.session) {
-          const profile = await supabase.rpc("korasmart_get_my_profile").maybeSingle();
-          next.push({
+          const profile = await promiseWithTimeout(Promise.resolve(supabase.rpc("korasmart_get_my_profile").maybeSingle()), "KoraSmart profile link");
+          appendResult({
             label: "KoraSmart profile link",
             status: profile.error || !profile.data ? "fail" : "ok",
             detail: profile.error ? profile.error.message : profile.data ? "The logged-in user is linked to a player profile." : "No player profile returned for this login."
           });
         }
       } catch (error) {
-        next.push({
+        appendResult({
           label: "Supabase session check",
           status: "fail",
           detail: error instanceof Error ? error.message : "Could not read the Supabase session."
@@ -137,7 +152,6 @@ export default function NetworkCheckPage() {
       }
     }
 
-    setResults(next);
     setRunning(false);
   }, [supabaseHost]);
 
