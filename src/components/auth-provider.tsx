@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import { LogIn, Save, ShieldCheck } from "lucide-react";
 import { type Session } from "@supabase/supabase-js";
 import { isAuthRequired, usernameToEmail } from "@/lib/auth";
@@ -315,6 +316,7 @@ function ProfileLinkError({ onSignOut }: { onSignOut: () => Promise<void> }) {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [loading, setLoading] = useState(Boolean(supabase && isAuthRequired));
@@ -431,6 +433,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }),
     [loading, profile, session]
   );
+
+  if (pathname === "/network-check") {
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  }
 
   if (loading) {
     return <main className="field-bg grid min-h-screen place-items-center text-lg font-black text-lime-300">Loading KoraSmart...</main>;
