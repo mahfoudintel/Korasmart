@@ -1,16 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Bell, BellRing, CheckCheck } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Bell, BellRing, CheckCheck, X } from "lucide-react";
 import { useAppNotifications } from "@/hooks/use-app-notifications";
+import { useOutsideDismiss } from "@/hooks/use-outside-dismiss";
 
 export function AppNotifications() {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const closeMenu = useCallback(() => setOpen(false), []);
   const { notifications, unreadCount, permission, markAllRead, requestPermission } = useAppNotifications();
+  useOutsideDismiss(menuRef, open, closeMenu);
 
   return (
-    <div className="relative">
+    <div ref={menuRef} className="relative">
       <button
         onClick={() => {
           const nextOpen = !open;
@@ -37,9 +41,14 @@ export function AppNotifications() {
                 {notifications.length ? "Live from schedule and attendance." : "Nothing new right now."}
               </p>
             </div>
-            <button onClick={markAllRead} className="grid h-9 w-9 place-items-center rounded-full border border-white/60 text-[#2f9e2f]" title="Mark all read">
-              <CheckCheck className="h-4 w-4" />
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <button onClick={markAllRead} className="grid h-9 w-9 place-items-center rounded-full border border-white/60 text-[#2f9e2f]" title="Mark all read">
+                <CheckCheck className="h-4 w-4" />
+              </button>
+              <button onClick={closeMenu} className="grid h-9 w-9 place-items-center rounded-full border border-white/60 text-slate-600 transition hover:bg-white/60" title="Close" aria-label="Close notifications">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           {permission !== "granted" && typeof window !== "undefined" && "Notification" in window && (

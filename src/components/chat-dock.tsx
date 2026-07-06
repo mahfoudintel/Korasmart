@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { MessageCircle, Send, Trash2, UserRound, Users, X } from "lucide-react";
 import { players } from "@/lib/data";
 import { useChat } from "@/hooks/use-chat";
@@ -8,6 +8,7 @@ import { useLocalProfile } from "@/hooks/use-local-profile";
 import { useLanguage } from "@/components/language-provider";
 import { translateText } from "@/lib/translations";
 import { cn } from "@/lib/utils";
+import { useOutsideDismiss } from "@/hooks/use-outside-dismiss";
 
 function formatChatTime(value: string) {
   return new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
@@ -18,7 +19,9 @@ export function ChatDock() {
   const [draft, setDraft] = useState("");
   const [activeConversationId, setActiveConversationId] = useState("team");
   const [groupSelection, setGroupSelection] = useState<string[]>([]);
+  const dockRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const closeDock = useCallback(() => setOpen(false), []);
   const { messages, ownPlayerName, loggedIn, sendMessage, deleteMessage } = useChat();
   const { profile } = useLocalProfile();
   const { language } = useLanguage();
@@ -26,6 +29,7 @@ export function ChatDock() {
   useEffect(() => {
     if (open) scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, open, activeConversationId]);
+  useOutsideDismiss(dockRef, open, closeDock);
 
   const directConversations = players
     .filter((player) => player.name !== profile.playerName)
@@ -62,7 +66,7 @@ export function ChatDock() {
   };
 
   return (
-    <div className="fixed bottom-24 right-0 z-40 lg:bottom-8">
+    <div ref={dockRef} className="fixed bottom-24 right-0 z-40 lg:bottom-8">
       <button
         onClick={() => setOpen(true)}
         className={cn(
@@ -79,7 +83,7 @@ export function ChatDock() {
       {open && (
         <div className="relative mr-3 grid h-[min(720px,calc(100vh-7rem))] w-[min(1040px,calc(100vw-1.5rem))] overflow-hidden rounded-[22px] border border-white/12 bg-[#10190f]/95 shadow-2xl backdrop-blur-xl lg:grid-cols-[300px_minmax(0,1fr)]">
           <button
-            onClick={() => setOpen(false)}
+            onClick={closeDock}
             className="absolute right-3 top-3 z-20 inline-flex h-11 items-center gap-2 rounded-full border border-orange-300/45 bg-black/65 px-4 text-sm font-black text-orange-100 shadow-[0_0_24px_rgba(251,146,60,.22)] backdrop-blur-xl transition hover:border-orange-200 hover:bg-orange-400 hover:text-black"
             aria-label="Close chat"
             title="Close chat"

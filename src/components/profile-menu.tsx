@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
-import { Camera, ChevronDown, Eye, LogIn, LogOut, Save, ShieldCheck } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Camera, ChevronDown, Eye, LogIn, LogOut, Save, ShieldCheck, X } from "lucide-react";
 import { canImpersonate, roleLabels } from "@/lib/access";
 import { players } from "@/lib/data";
 import { useLocalProfile } from "@/hooks/use-local-profile";
 import { useRole } from "@/hooks/use-role";
+import { useOutsideDismiss } from "@/hooks/use-outside-dismiss";
 
 const avatarPresets = Array.from({ length: 20 }, (_, index) => `/images/avatars/avatar-${String(index + 1).padStart(2, "0")}.png`);
 
@@ -18,7 +19,10 @@ export function ProfileMenu() {
   const [impersonationTarget, setImpersonationTarget] = useState(players[0]?.name || "");
   const { profile, updateProfile, loginWithCredentials, logout, impersonatePlayer, stopImpersonating } = useLocalProfile();
   const { role } = useRole();
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const closeMenu = useCallback(() => setOpen(false), []);
+  useOutsideDismiss(menuRef, open, closeMenu);
 
   const handleAvatarUpload = (file?: File) => {
     if (!file) return;
@@ -51,7 +55,7 @@ export function ProfileMenu() {
   };
 
   return (
-    <div className="relative">
+    <div ref={menuRef} className="relative">
       <button
         onClick={() => setOpen((value) => !value)}
         className="flex h-10 items-center gap-2 rounded-full border border-white/60 bg-white/78 px-1.5 text-left text-slate-950 shadow-[0_10px_24px_rgba(38,59,28,.1)] backdrop-blur-xl sm:h-12 sm:gap-3 sm:px-2 sm:pr-3"
@@ -72,7 +76,15 @@ export function ProfileMenu() {
 
       {open && (
         <div className="absolute right-0 z-50 mt-3 w-[min(24rem,calc(100vw-2rem))] rounded-[20px] border border-slate-200 bg-white p-4 text-slate-950 shadow-[0_24px_70px_rgba(2,12,27,.24)]">
-          <div className="flex items-center gap-4">
+          <button
+            onClick={closeMenu}
+            className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            aria-label="Close profile menu"
+            title="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <div className="flex items-center gap-4 pr-10">
             <button
               onClick={() => profile.loggedIn && inputRef.current?.click()}
               disabled={!profile.loggedIn}
@@ -118,7 +130,7 @@ export function ProfileMenu() {
                 <LogOut className="h-4 w-4" />
                 Logout
               </button>
-              <button onClick={() => setOpen(false)} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#49b848] px-4 text-sm font-black text-white shadow-[0_12px_24px_rgba(47,158,47,.2)] transition hover:bg-[#3ca63c]">
+              <button onClick={closeMenu} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#49b848] px-4 text-sm font-black text-white shadow-[0_12px_24px_rgba(47,158,47,.2)] transition hover:bg-[#3ca63c]">
                 <Save className="h-4 w-4" />
                 Done
               </button>
@@ -226,7 +238,7 @@ export function ProfileMenu() {
                 Prototype login: username is the player name without spaces, password is kora2026.
               </p>
               <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => setOpen(false)} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/60 bg-white/40 px-4 text-sm font-black text-slate-700">
+                <button onClick={closeMenu} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/60 bg-white/40 px-4 text-sm font-black text-slate-700">
                   Cancel
                 </button>
                 <button onClick={submitLogin} className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#49b848] px-4 text-sm font-black text-white">
