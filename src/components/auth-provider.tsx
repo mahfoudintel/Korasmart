@@ -64,6 +64,8 @@ async function loadRemoteProfile(userId: string) {
   if (!supabase) return null;
 
   const baseSelect = "id, name, username, must_change_password, user_roles(role)";
+  const { data: sessionData } = await supabase.auth.getSession();
+  const emailUsername = sessionData.session?.user.email?.split("@")[0]?.toLowerCase();
   const withAvatar = await supabase
     .from("players")
     .select(`id, name, username, avatar_preset, must_change_password, user_roles(role)`)
@@ -78,7 +80,25 @@ async function loadRemoteProfile(userId: string) {
     .eq("auth_user_id", userId)
     .maybeSingle();
 
-  return fallback.data ? { ...fallback.data, avatar_preset: null } : null;
+  if (fallback.data) return { ...fallback.data, avatar_preset: null };
+
+  if (!emailUsername) return null;
+
+  const byUsernameWithAvatar = await supabase
+    .from("players")
+    .select(`id, name, username, avatar_preset, must_change_password, user_roles(role)`)
+    .eq("username", emailUsername)
+    .maybeSingle();
+
+  if (!byUsernameWithAvatar.error && byUsernameWithAvatar.data) return byUsernameWithAvatar.data;
+
+  const byUsernameFallback = await supabase
+    .from("players")
+    .select(baseSelect)
+    .eq("username", emailUsername)
+    .maybeSingle();
+
+  return byUsernameFallback.data ? { ...byUsernameFallback.data, avatar_preset: null } : null;
 }
 
 function LoginForm({ onLocalLogin }: { onLocalLogin?: (username: string, password: string) => boolean }) {
