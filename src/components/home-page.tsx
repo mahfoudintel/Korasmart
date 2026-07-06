@@ -97,6 +97,7 @@ export function HomePage() {
     reservationStatus,
     canSubmitAttendance,
     saveError,
+    loadError,
     setStatus,
     dropOut
   } = useAttendance(nextReservation?.id, nextReservation);
@@ -184,9 +185,9 @@ export function HomePage() {
                 )}
                 {!currentStatus && <span>Choose one option now so the group can plan teams clearly.</span>}
               </p>
-              {saveError && (
+              {(saveError || loadError) && (
                 <p className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 p-3 text-sm font-bold text-orange-700 sm:p-4">
-                  {saveError}
+                  {saveError || loadError}
                 </p>
               )}
             </div>

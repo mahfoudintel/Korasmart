@@ -43,6 +43,7 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
     canSubmitAttendance,
     attendanceMessage,
     saveError,
+    loadError,
     setStatus,
     dropOut
   } = useAttendance(nextReservation?.id, nextReservation);
@@ -136,9 +137,9 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
         </button>
       </div>
 
-      {saveError && (
+      {(saveError || loadError) && (
         <p className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 p-3 text-xs font-bold text-orange-700">
-          {saveError}
+          {saveError || loadError}
         </p>
       )}
 

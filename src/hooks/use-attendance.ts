@@ -16,6 +16,12 @@ export type AttendanceRecord = {
 };
 
 export type AttendanceMap = Record<string, Record<string, AttendanceRecord>>;
+type RemoteAttendanceRecord = {
+  booking_external_id: string | null;
+  player_name: string | null;
+  status: string | null;
+  joined_at: string | null;
+};
 
 const storageKey = "korasmart-attendance-v1";
 export const playingLimit = 10;
@@ -77,6 +83,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
   const [selectedPlayer, setSelectedPlayer] = useState(members[0]?.name || "");
   const [attendance, setAttendance] = useState<AttendanceMap>({});
   const [saveError, setSaveError] = useState("");
+  const [loadError, setLoadError] = useState("");
   const remoteEnabled = Boolean(supabase && session);
 
   useEffect(() => {
@@ -109,19 +116,19 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
     async function loadRemoteAttendance() {
       if (!client || !session) return;
 
-      const { data, error } = await client
-        .from("attendance")
-        .select("status, joined_at, bookings(external_id), players(name)")
-        .in("status", ["playing", "waiting"]);
+      const { data, error } = await client.rpc("korasmart_get_attendance");
 
-      if (cancelled || error || !data) return;
+      if (cancelled) return;
+      if (error) {
+        setLoadError(error.message || "Attendance could not be loaded.");
+        return;
+      }
+      if (!data) return;
 
       const nextAttendance: AttendanceMap = {};
-      data.forEach((record) => {
-        const booking = Array.isArray(record.bookings) ? record.bookings[0] : record.bookings;
-        const player = Array.isArray(record.players) ? record.players[0] : record.players;
-        const bookingId = booking?.external_id;
-        const playerName = player?.name;
+      (data as RemoteAttendanceRecord[]).forEach((record) => {
+        const bookingId = record.booking_external_id;
+        const playerName = record.player_name;
         if (!bookingId || !playerName || (record.status !== "playing" && record.status !== "waiting")) return;
 
         nextAttendance[bookingId] = {
@@ -133,6 +140,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
         };
       });
 
+      setLoadError("");
       setAttendance(nextAttendance);
     }
 
@@ -292,6 +300,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
     canSubmitAttendance,
     attendanceMessage,
     saveError,
+    loadError,
     setStatus,
     dropOut
   };
