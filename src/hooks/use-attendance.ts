@@ -235,15 +235,21 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
           ? authProfile.id
           : (await supabase.from("players").select("id").eq("name", selectedPlayer).maybeSingle()).data?.id;
       if (booking?.id && playerId) {
-        await supabase.from("attendance").upsert(
-          {
-            booking_id: booking.id,
-            player_id: playerId,
-            status: nextStatus,
-            joined_at: new Date().toISOString()
-          },
-          { onConflict: "booking_id,player_id" }
-        );
+        const payload = {
+          booking_id: booking.id,
+          player_id: playerId,
+          status: nextStatus,
+          joined_at: new Date().toISOString()
+        };
+        const { data: updated } = await supabase
+          .from("attendance")
+          .update(payload)
+          .eq("booking_id", booking.id)
+          .eq("player_id", playerId)
+          .select("id")
+          .limit(1);
+
+        if (!updated?.length) await supabase.from("attendance").insert(payload);
       }
     }
   };

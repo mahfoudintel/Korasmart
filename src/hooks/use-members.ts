@@ -133,14 +133,20 @@ export function useMembers() {
     }
 
     if (supabase && session) {
-      const { error } = await supabase.from("players").upsert(
-        {
-          name: cleanName,
-          position: "Member",
-          is_active: true
-        },
-        { onConflict: "name" }
-      );
+      const payload = {
+        name: cleanName,
+        position: "Member",
+        is_active: true
+      };
+      const { data: updated, error: updateError } = await supabase
+        .from("players")
+        .update(payload)
+        .eq("name", cleanName)
+        .select("id")
+        .limit(1);
+
+      const { error: insertError } = updated?.length || updateError ? { error: null } : await supabase.from("players").insert(payload);
+      const error = updateError || insertError;
 
       if (error) return { ok: false, message: "Could not add player in Supabase." };
       setRemoteMembers((current) => [...(current || []), { name: cleanName, ...blankMemberStats }]);

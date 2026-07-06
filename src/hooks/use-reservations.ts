@@ -119,22 +119,30 @@ export function useReservations() {
     });
 
     if (supabase && session) {
-      const { data: savedBooking } = await supabase.from("bookings").upsert(
-        {
-          external_id: normalizedReservation.id,
-          starts_at: `${normalizedReservation.date}T${normalizedReservation.time}:00+01:00`,
-          venue: normalizedReservation.venue,
-          field_name: normalizedReservation.field,
-          duration_minutes: normalizedReservation.durationMinutes,
-          sport: normalizedReservation.sport,
-          status: normalizedReservation.status,
-          reservation_status: normalizedReservation.reservationStatus || "closed",
-          reservation_open_at: normalizedReservation.reservationOpenAt || null,
-          notification_sent_at: normalizedReservation.notificationSentAt || null,
-          match_report: normalizedReservation.matchReport || null
-        },
-        { onConflict: "external_id" }
-      ).select("id").maybeSingle();
+      const payload = {
+        external_id: normalizedReservation.id,
+        starts_at: `${normalizedReservation.date}T${normalizedReservation.time}:00+01:00`,
+        venue: normalizedReservation.venue,
+        field_name: normalizedReservation.field,
+        duration_minutes: normalizedReservation.durationMinutes,
+        sport: normalizedReservation.sport,
+        status: normalizedReservation.status,
+        reservation_status: normalizedReservation.reservationStatus || "closed",
+        reservation_open_at: normalizedReservation.reservationOpenAt || null,
+        notification_sent_at: normalizedReservation.notificationSentAt || null,
+        match_report: normalizedReservation.matchReport || null
+      };
+
+      const { data: updatedBooking } = await supabase
+        .from("bookings")
+        .update(payload)
+        .eq("external_id", normalizedReservation.id)
+        .select("id")
+        .limit(1);
+
+      const savedBooking = updatedBooking?.[0]
+        ? updatedBooking[0]
+        : (await supabase.from("bookings").insert(payload).select("id").maybeSingle()).data;
 
       if (savedBooking?.id && !existsBeforeSave && normalizedReservation.status !== "cancelled") {
         const { data: existingCost } = await supabase
