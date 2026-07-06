@@ -38,6 +38,15 @@ const AuthContext = createContext<AuthContextValue>({
 
 export const useAuth = () => useContext(AuthContext);
 
+type RpcProfile = {
+  id?: string;
+  name?: string;
+  username?: string | null;
+  avatar_preset?: string | null;
+  must_change_password?: boolean | null;
+  role?: string | null;
+};
+
 const normalizeLocalUsername = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 const defaultLocalUsers = players.map((player, index) => ({
@@ -62,6 +71,19 @@ function readLocalLoggedIn() {
 
 async function loadRemoteProfile(userId: string) {
   if (!supabase) return null;
+
+  const rpcProfile = await supabase.rpc("korasmart_get_my_profile").maybeSingle();
+  const rpcData = rpcProfile.data as RpcProfile | null;
+  if (!rpcProfile.error && rpcData?.id && rpcData.name) {
+    return {
+      id: rpcData.id,
+      name: rpcData.name,
+      username: rpcData.username || null,
+      avatar_preset: rpcData.avatar_preset || null,
+      must_change_password: rpcData.must_change_password ?? false,
+      user_roles: [{ role: rpcData.role || "player" }]
+    };
+  }
 
   const baseSelect = "id, name, username, must_change_password, user_roles(role)";
   const { data: sessionData } = await supabase.auth.getSession();
