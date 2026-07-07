@@ -265,7 +265,7 @@ export function HomePage() {
                   <MapPin className="h-5 w-5" />
                   <ReservationMapLink reservation={nextReservation} className="text-white/90" />
                 </p>
-                <span className="inline-flex rounded-full bg-[#1f8d35]/70 px-3 py-1 text-xs font-bold text-lime-100">Indoor • Futsal</span>
+                <span className="inline-flex rounded-full bg-[#1f8d35]/70 px-3 py-1 text-xs font-bold text-lime-100">Outdoor football</span>
               </div>
               <div className="mt-8 flex flex-wrap gap-3">
                 <button className="inline-flex h-11 items-center gap-2 rounded-xl bg-lime-300 px-5 text-sm font-black text-[#061827]">
