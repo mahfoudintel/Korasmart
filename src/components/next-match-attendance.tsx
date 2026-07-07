@@ -42,6 +42,7 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
     reservationStatus,
     canSubmitAttendance,
     attendanceMessage,
+    saveStatus,
     saveError,
     loadError,
     setStatus,
@@ -71,7 +72,7 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs font-extrabold uppercase tracking-[.08em] text-[#238923]">Attendance</p>
         <span className={reservationStatus === "open" ? "rounded-full bg-lime-100 px-3 py-1 text-[11px] font-extrabold text-[#247e24]" : "rounded-full bg-white/65 px-3 py-1 text-[11px] font-extrabold text-slate-600"}>
-          {reservationStatus === "open" ? "Open" : reservationStatus === "completed" ? "Closed" : "Locked"}
+          {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved" : reservationStatus === "open" ? "Open" : reservationStatus === "completed" ? "Closed" : "Locked"}
         </span>
       </div>
       <p className="mt-2 text-xs leading-relaxed text-slate-600">
@@ -99,7 +100,7 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
 
       {!compact && (
         <label className="mt-4 block text-xs font-bold text-slate-600">
-          Member
+          Player
           <select
             value={selectedPlayer}
             onChange={(event) => setSelectedPlayer(event.target.value)}
@@ -118,24 +119,30 @@ export function NextMatchAttendance({ compact = false }: { compact?: boolean }) 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button
           onClick={setStatus}
-          disabled={!canSubmitAttendance}
+          disabled={!canSubmitAttendance || saveStatus === "saving"}
           className={cn(
             "grid min-h-12 place-items-center rounded-2xl border border-white/10 px-2 text-[11px] font-extrabold transition disabled:cursor-not-allowed disabled:opacity-55",
             currentStatus === "playing" ? "bg-[#49b848] text-white" : currentStatus === "waiting" ? "bg-amber-300 text-black" : "bg-white/60 text-slate-700 hover:border-lime-500/45"
           )}
         >
           <CheckCircle2 className="h-4 w-4" />
-          {summary.playing >= playingLimit && currentStatus !== "playing" ? "Waitlist" : "Attending"}
+          {saveStatus === "saving" ? "Saving" : summary.playing >= playingLimit && currentStatus !== "playing" ? "Waitlist" : "Attending"}
         </button>
         <button
           onClick={dropOut}
-          disabled={!canSubmitAttendance}
+          disabled={!canSubmitAttendance || saveStatus === "saving"}
           className="grid min-h-12 place-items-center rounded-2xl border border-white/60 bg-white/68 px-2 text-[11px] font-extrabold text-slate-700 transition hover:border-orange-300/70 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-55"
         >
           {currentStatus ? <LogOut className="h-4 w-4" /> : <UserX className="h-4 w-4" />}
-          {currentStatus ? "Drop out" : "Out"}
+          {saveStatus === "saving" ? "Saving" : currentStatus ? "Drop out" : "Out"}
         </button>
       </div>
+
+      {saveStatus === "saved" && !saveError && (
+        <p className="mt-3 rounded-2xl border border-lime-200 bg-lime-50 p-3 text-xs font-black text-[#247e24]">
+          Saved. Your status is synced.
+        </p>
+      )}
 
       {(saveError || loadError) && (
         <p className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 p-3 text-xs font-bold text-orange-700">

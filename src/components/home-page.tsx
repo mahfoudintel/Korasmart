@@ -96,6 +96,7 @@ export function HomePage() {
     selectedPosition,
     reservationStatus,
     canSubmitAttendance,
+    saveStatus,
     saveError,
     loadError,
     setStatus,
@@ -126,7 +127,7 @@ export function HomePage() {
             <div className="p-4 sm:p-7">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <span className="rounded-full bg-[#3dad3d] px-3 py-1.5 text-[11px] font-black uppercase tracking-[.06em] text-white sm:px-4 sm:py-2 sm:text-xs">
-                  Attendance open
+                  {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved" : "Attendance open"}
                 </span>
                 <span className="rounded-full bg-lime-100 px-3 py-1.5 text-[11px] font-black text-[#247e24] sm:px-4 sm:py-2 sm:text-xs">
                   {summary.playing}/{playingLimit} confirmed
@@ -160,19 +161,19 @@ export function HomePage() {
               <div className="mt-5 grid gap-3 sm:mt-7 sm:grid-cols-2">
                 <button
                   onClick={setStatus}
-                  disabled={!canSubmitAttendance}
+                  disabled={!canSubmitAttendance || saveStatus === "saving"}
                   className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-[#3dad3d] px-4 text-base font-black text-white shadow-[0_16px_30px_rgba(47,158,47,.24)] transition hover:bg-[#319c31] disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-16 sm:px-5 sm:text-lg"
                 >
                   <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
-                  {summary.playing >= playingLimit && currentStatus !== "playing" ? "Join waiting list" : "Attending"}
+                  {saveStatus === "saving" ? "Saving..." : summary.playing >= playingLimit && currentStatus !== "playing" ? "Join waiting list" : "Attending"}
                 </button>
                 <button
                   onClick={dropOut}
-                  disabled={!canSubmitAttendance}
+                  disabled={!canSubmitAttendance || saveStatus === "saving"}
                   className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl border border-orange-200 bg-orange-50 px-4 text-base font-black text-orange-700 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-16 sm:px-5 sm:text-lg"
                 >
                   <UserX className="h-5 w-5 sm:h-6 sm:w-6" />
-                  Not attending
+                  {saveStatus === "saving" ? "Saving..." : "Not attending"}
                 </button>
               </div>
 
@@ -185,6 +186,11 @@ export function HomePage() {
                 )}
                 {!currentStatus && <span>Choose one option now so the group can plan teams clearly.</span>}
               </p>
+              {saveStatus === "saved" && !saveError && (
+                <p className="mt-3 rounded-2xl border border-lime-200 bg-lime-50 p-3 text-sm font-black text-[#247e24] sm:p-4">
+                  Saved. Your status is synced.
+                </p>
+              )}
               {(saveError || loadError) && (
                 <p className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 p-3 text-sm font-bold text-orange-700 sm:p-4">
                   {saveError || loadError}

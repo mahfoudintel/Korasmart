@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, RefreshCw, WifiOff, XCircle } from "lucide-react";
+import { useRole } from "@/hooks/use-role";
 import { supabase } from "@/lib/supabase";
 
 type CheckStatus = "idle" | "running" | "ok" | "fail";
@@ -58,6 +59,7 @@ function CheckRow({ result }: { result: CheckResult }) {
 }
 
 export default function NetworkCheckPage() {
+  const { role } = useRole();
   const [results, setResults] = useState<CheckResult[]>([]);
   const [running, setRunning] = useState(false);
 
@@ -156,8 +158,23 @@ export default function NetworkCheckPage() {
   }, [supabaseHost]);
 
   useEffect(() => {
+    if (role !== "superuser") return;
     void runChecks();
-  }, [runChecks]);
+  }, [role, runChecks]);
+
+  if (role !== "superuser") {
+    return (
+      <main className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
+        <section className="rounded-[28px] border border-white/70 bg-white/78 p-5 shadow-[0_20px_60px_rgba(15,23,42,.16)] backdrop-blur-[20px] sm:p-7">
+          <p className="text-xs font-black uppercase tracking-[.18em] text-green-700">Admin tool</p>
+          <h1 className="mt-2 text-3xl font-black text-slate-950">Network check</h1>
+          <p className="mt-3 text-sm font-semibold leading-6 text-slate-600">
+            Superuser access is required for this diagnostic page.
+          </p>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">

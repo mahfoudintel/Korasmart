@@ -559,7 +559,24 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
     fr: "Choisis une option maintenant pour aider le groupe a organiser les equipes.",
     ar: "اختر خيارا الآن حتى يتمكن الفريق من تنظيم الفرق بوضوح."
   },
-  "Live attendance": { fr: "Presence en direct", ar: "الحضور المباشر" }
+  "Live attendance": { fr: "Presence en direct", ar: "الحضور المباشر" },
+  "Saving...": { fr: "Enregistrement...", ar: "جار الحفظ..." },
+  Saving: { fr: "Enregistrement", ar: "جار الحفظ" },
+  Saved: { fr: "Enregistre", ar: "تم الحفظ" },
+  "Saved. Your status is synced.": {
+    fr: "Enregistre. Ton statut est synchronise.",
+    ar: "تم الحفظ. تمت مزامنة حالتك."
+  },
+  "Your status is synced.": {
+    fr: "Ton statut est synchronise.",
+    ar: "تمت مزامنة حالتك."
+  },
+  "Admin tool": { fr: "Outil admin", ar: "أداة الإدارة" },
+  "Network check": { fr: "Verification reseau", ar: "فحص الشبكة" },
+  "Superuser access is required for this diagnostic page.": {
+    fr: "Un acces superutilisateur est requis pour cette page de diagnostic.",
+    ar: "هذه الصفحة التشخيصية تتطلب صلاحية المستخدم الفائق."
+  }
 };
 
 export function translateText(text: string, language: Language) {

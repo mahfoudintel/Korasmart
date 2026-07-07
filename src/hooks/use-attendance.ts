@@ -16,6 +16,7 @@ export type AttendanceRecord = {
 };
 
 export type AttendanceMap = Record<string, Record<string, AttendanceRecord>>;
+export type AttendanceSaveStatus = "idle" | "saving" | "saved" | "error";
 type RemoteAttendanceRecord = {
   booking_external_id: string | null;
   player_name: string | null;
@@ -82,6 +83,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
   const { members } = useMembers();
   const [selectedPlayer, setSelectedPlayer] = useState(members[0]?.name || "");
   const [attendance, setAttendance] = useState<AttendanceMap>({});
+  const [saveStatus, setSaveStatus] = useState<AttendanceSaveStatus>("idle");
   const [saveError, setSaveError] = useState("");
   const [loadError, setLoadError] = useState("");
   const remoteEnabled = Boolean(supabase && session);
@@ -164,6 +166,13 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
     window.localStorage.setItem(storageKey, JSON.stringify(attendance));
   }, [attendance, remoteEnabled]);
 
+  useEffect(() => {
+    if (saveStatus !== "saved") return;
+
+    const timeout = window.setTimeout(() => setSaveStatus("idle"), 2400);
+    return () => window.clearTimeout(timeout);
+  }, [saveStatus]);
+
   const reservationAttendance = useMemo(
     () => (reservationId ? attendance[reservationId] || {} : {}),
     [attendance, reservationId]
@@ -208,18 +217,15 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
 
   const setStatus = async () => {
     if (!reservationId || !canSubmitAttendance) return;
-    let nextStatus: AttendanceStatus = "playing";
+    const requestedStatus =
+      currentStatus !== "playing" && summary.playing >= playingLimit
+        ? "waiting"
+        : "playing";
     setSaveError("");
+    setSaveStatus("saving");
 
     setAttendance((current) => {
       const reservationRecords = current[reservationId] || {};
-      const selectedCurrentStatus = reservationRecords[selectedPlayer]?.status;
-      const requestedStatus =
-        selectedCurrentStatus !== "playing" &&
-        Object.values(reservationRecords).filter((record) => record.status === "playing").length >= playingLimit
-          ? "waiting"
-          : "playing";
-      nextStatus = requestedStatus;
 
       const nextReservationAttendance = promoteWaitingList({
         ...reservationRecords,
@@ -242,11 +248,12 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
       const { error } = await supabase.rpc("korasmart_save_attendance", {
         p_booking_external_id: reservationId,
         p_player_name: selectedPlayer,
-        p_status: nextStatus
+        p_status: requestedStatus
       });
 
       if (error) {
         setSaveError(error.message || "Attendance could not be saved.");
+        setSaveStatus("error");
         setAttendance((current) => {
           const reservationRecords = { ...(current[reservationId] || {}) };
           delete reservationRecords[selectedPlayer];
@@ -256,13 +263,17 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
             [reservationId]: promoteWaitingList(reservationRecords)
           };
         });
+        return;
       }
     }
+
+    setSaveStatus("saved");
   };
 
   const dropOut = async () => {
     if (!reservationId || !canSubmitAttendance) return;
     setSaveError("");
+    setSaveStatus("saving");
 
     setAttendance((current) => {
       const reservationRecords = { ...(current[reservationId] || {}) };
@@ -282,8 +293,12 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
 
       if (error) {
         setSaveError(error.message || "Attendance could not be saved.");
+        setSaveStatus("error");
+        return;
       }
     }
+
+    setSaveStatus("saved");
   };
 
   return {
@@ -299,6 +314,7 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
     reservationStatus,
     canSubmitAttendance,
     attendanceMessage,
+    saveStatus,
     saveError,
     loadError,
     setStatus,
