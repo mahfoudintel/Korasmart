@@ -12,7 +12,7 @@ export const navItems = [
   { label: "Home", mobileLabel: "Home", href: "/", icon: Home },
   { label: "Matches", mobileLabel: "Matches", href: "/matches", icon: CalendarDays },
   { label: "Players", mobileLabel: "Players", href: "/players", icon: Users },
-  { label: "Finances", mobileLabel: "Money", href: "/finances", icon: WalletCards },
+  { label: "Finances", href: "/finances", icon: WalletCards },
   { label: "Insights", mobileLabel: "Insights", href: "/insights", icon: LineChart },
   { label: "Admin", mobileLabel: "Admin", href: "/admin", icon: Settings }
 ];
