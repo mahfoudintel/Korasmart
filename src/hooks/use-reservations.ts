@@ -94,29 +94,13 @@ export function useReservations() {
     window.localStorage.setItem(storageKey, JSON.stringify(sortReservations(reservations)));
   }, [remoteEnabled, reservations]);
 
-  const upsertReservation = async (reservation: Reservation) => {
+  const upsertReservation = async (reservation: Reservation): Promise<{ ok: boolean; error?: string }> => {
     const existsBeforeSave = reservations.some((item) => item.id === reservation.id);
     const normalizedReservation: Reservation = {
       ...reservation,
       reservationOpenAt: reservation.reservationOpenAt || getReservationOpenAt(reservation).toISOString(),
       reservationStatus: getSessionReservationStatus(reservation)
     };
-
-    setReservations((current) => {
-      const exists = current.some((item) => item.id === normalizedReservation.id);
-      const next = exists
-        ? current.map((item) => (item.id === reservation.id ? normalizedReservation : item))
-        : [...current, normalizedReservation];
-
-      if (!remoteEnabled && !exists && normalizedReservation.status !== "cancelled") {
-        recordBookingCost(normalizedReservation.id, `${normalizedReservation.venue} ${normalizedReservation.date} ${normalizedReservation.time}`);
-      }
-      if (!remoteEnabled && normalizedReservation.status === "cancelled") {
-        reverseBookingCost(normalizedReservation.id, "Booking cancelled");
-      }
-
-      return sortReservations(next);
-    });
 
     if (supabase && session) {
       const payload = {
@@ -133,16 +117,31 @@ export function useReservations() {
         match_report: normalizedReservation.matchReport || null
       };
 
-      const { data: updatedBooking } = await supabase
+      const { data: updatedBooking, error: updateError } = await supabase
         .from("bookings")
         .update(payload)
         .eq("external_id", normalizedReservation.id)
         .select("id")
         .limit(1);
 
-      const savedBooking = updatedBooking?.[0]
-        ? updatedBooking[0]
-        : (await supabase.from("bookings").insert(payload).select("id").maybeSingle()).data;
+      if (updateError) return { ok: false, error: updateError.message || "Booking could not be updated." };
+
+      const insertResult = updatedBooking?.[0]
+        ? { data: updatedBooking[0], error: null }
+        : await supabase.from("bookings").insert(payload).select("id").maybeSingle();
+
+      if (insertResult.error) return { ok: false, error: insertResult.error.message || "Booking could not be saved." };
+
+      const savedBooking = insertResult.data;
+
+      setReservations((current) => {
+        const exists = current.some((item) => item.id === normalizedReservation.id);
+        const next = exists
+          ? current.map((item) => (item.id === normalizedReservation.id ? normalizedReservation : item))
+          : [...current, normalizedReservation];
+
+        return sortReservations(next);
+      });
 
       if (savedBooking?.id && !existsBeforeSave && normalizedReservation.status !== "cancelled") {
         const { data: existingCost } = await supabase
@@ -161,7 +160,27 @@ export function useReservations() {
           });
         }
       }
+
+      return { ok: true };
     }
+
+    setReservations((current) => {
+      const exists = current.some((item) => item.id === normalizedReservation.id);
+      const next = exists
+        ? current.map((item) => (item.id === reservation.id ? normalizedReservation : item))
+        : [...current, normalizedReservation];
+
+      if (!remoteEnabled && !exists && normalizedReservation.status !== "cancelled") {
+        recordBookingCost(normalizedReservation.id, `${normalizedReservation.venue} ${normalizedReservation.date} ${normalizedReservation.time}`);
+      }
+      if (!remoteEnabled && normalizedReservation.status === "cancelled") {
+        reverseBookingCost(normalizedReservation.id, "Booking cancelled");
+      }
+
+      return sortReservations(next);
+    });
+
+    return { ok: true };
   };
 
   const removeReservation = async (id: string) => {

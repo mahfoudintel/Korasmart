@@ -32,6 +32,8 @@ export function ReservationAdmin() {
   const canEdit = canEditBookings(role);
   const { reservations, upsertReservation, removeReservation, resetReservations } = useReservations();
   const [draft, setDraft] = useState<Reservation>(emptyReservation);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveMessage, setSaveMessage] = useState("");
 
   const nextReservation = useMemo(() => getNextReservation(reservations), [reservations]);
   const upcomingReservations = useMemo(() => getUpcomingReservations(reservations), [reservations]);
@@ -41,9 +43,21 @@ export function ReservationAdmin() {
     setDraft((current) => ({ ...current, [key]: value }));
   };
 
-  const saveDraft = () => {
+  const saveDraft = async () => {
     const id = draft.id || `res-${draft.date}-${draft.time.replace(":", "")}`;
-    upsertReservation({ ...draft, id });
+    setSaveStatus("saving");
+    setSaveMessage("");
+
+    const result = await upsertReservation({ ...draft, id });
+
+    if (!result.ok) {
+      setSaveStatus("error");
+      setSaveMessage(result.error || "Booking could not be saved.");
+      return;
+    }
+
+    setSaveStatus("saved");
+    setSaveMessage("Booking saved online.");
     setDraft({ ...emptyReservation, date: draft.date, time: draft.time, venue: draft.venue });
   };
 
@@ -194,9 +208,9 @@ export function ReservationAdmin() {
           </div>
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <button onClick={saveDraft} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#3dad3d] px-5 font-extrabold text-white transition hover:bg-[#319c31]">
+            <button disabled={saveStatus === "saving"} onClick={saveDraft} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#3dad3d] px-5 font-extrabold text-white transition hover:bg-[#319c31] disabled:cursor-not-allowed disabled:opacity-60">
               <Save className="h-4 w-4" />
-              Save
+              {saveStatus === "saving" ? "Saving..." : "Save"}
             </button>
             <button onClick={resetReservations} className="inline-flex h-11 items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-5 font-extrabold text-orange-700 transition hover:bg-orange-100">
               <RotateCcw className="h-4 w-4" />
@@ -215,6 +229,12 @@ export function ReservationAdmin() {
               </button>
             )}
           </div>
+
+          {saveMessage && (
+            <p className={saveStatus === "error" ? "mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-3 text-sm font-bold text-orange-700" : "mt-4 rounded-2xl border border-lime-200 bg-lime-50 p-3 text-sm font-bold text-[#247e24]"}>
+              {saveMessage}
+            </p>
+          )}
         </Card>}
       </div>
 
@@ -224,7 +244,7 @@ export function ReservationAdmin() {
           const baseDate = last ? new Date(`${last.date}T00:00:00`) : new Date("2026-07-27T00:00:00");
           baseDate.setDate(baseDate.getDate() + 7);
           const date = baseDate.toISOString().slice(0, 10);
-          upsertReservation({ ...emptyReservation, id: `res-${date}`, date });
+          void upsertReservation({ ...emptyReservation, id: `res-${date}`, date });
         }}
         className="inline-flex h-11 items-center gap-2 rounded-2xl border border-lime-200 bg-lime-50 px-5 font-extrabold text-[#247e24] transition hover:bg-lime-100"
       >
