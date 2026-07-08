@@ -104,13 +104,18 @@ export function useLocalProfile() {
     if (!session || !authProfile) return profile;
     if (profile.impersonatorPlayerName) return { ...profile, loggedIn: true };
 
+    const authUsername = authProfile.username || normalizeUsername(authProfile.name);
+    const sameAuthenticatedPlayer = profile.playerName === authProfile.name || profile.username === authUsername;
+
     return {
       ...profile,
-      username: authProfile.username || normalizeUsername(authProfile.name),
+      username: authUsername,
       playerName: authProfile.name,
       displayName: authProfile.name,
-      avatarDataUrl: "",
-      avatarPreset: authProfile.avatar_preset || getDefaultUserForPlayer(authProfile.name)?.avatarPreset || "/images/avatars/avatar-01.png",
+      avatarDataUrl: sameAuthenticatedPlayer ? profile.avatarDataUrl : "",
+      avatarPreset: sameAuthenticatedPlayer && profile.avatarPreset
+        ? profile.avatarPreset
+        : authProfile.avatar_preset || getDefaultUserForPlayer(authProfile.name)?.avatarPreset || "/images/avatars/avatar-01.png",
       loggedIn: true,
       impersonatorUsername: profile.impersonatorUsername,
       impersonatorPlayerName: profile.impersonatorPlayerName,
@@ -135,13 +140,19 @@ export function useLocalProfile() {
   useEffect(() => {
     if (!session || !authProfile) return;
 
+    const savedProfile = readProfile();
+    const authUsername = authProfile.username || normalizeUsername(authProfile.name);
+    const sameAuthenticatedPlayer = savedProfile.playerName === authProfile.name || savedProfile.username === authUsername;
+
     const authenticatedProfile: LocalProfile = {
-      ...readProfile(),
-      username: authProfile.username || normalizeUsername(authProfile.name),
+      ...savedProfile,
+      username: authUsername,
       playerName: authProfile.name,
       displayName: authProfile.name,
-      avatarDataUrl: "",
-      avatarPreset: authProfile.avatar_preset || getDefaultUserForPlayer(authProfile.name)?.avatarPreset || "/images/avatars/avatar-01.png",
+      avatarDataUrl: sameAuthenticatedPlayer ? savedProfile.avatarDataUrl : "",
+      avatarPreset: sameAuthenticatedPlayer && savedProfile.avatarPreset
+        ? savedProfile.avatarPreset
+        : authProfile.avatar_preset || getDefaultUserForPlayer(authProfile.name)?.avatarPreset || "/images/avatars/avatar-01.png",
       loggedIn: true,
       impersonatorUsername: undefined,
       impersonatorPlayerName: undefined,
