@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarCheck, CheckCircle2, Coins, History, MinusCircle, Plus, Search, ShieldCheck, UserRound, WalletCards } from "lucide-react";
+import { CalendarCheck, CheckCircle2, Coins, CreditCard, History, MinusCircle, Plus, Search, ShieldCheck, UserRound, WalletCards } from "lucide-react";
 import { canEditFinance } from "@/lib/access";
 import { financeSnapshot, formatDh } from "@/lib/finance";
 import { useRole } from "@/hooks/use-role";
@@ -32,9 +32,22 @@ type ContributionRow = {
   status: "Paid" | "Partial" | "Unpaid";
 };
 
+type PaymentAccount = {
+  accountName: string;
+  bankName: string;
+  accountNumber: string;
+  note: string;
+};
+
 const storageKey = "korasmart-finance-admin-v1";
 const expectedContribution = 200;
 const todayInputValue = () => new Date().toISOString().slice(0, 10);
+const defaultPaymentAccount: PaymentAccount = {
+  accountName: "KoraSmart Caisse",
+  bankName: "Cash / bank transfer",
+  accountNumber: "Ask Najib or Nawfal",
+  note: "Send proof after payment."
+};
 
 function formatDate(value?: string) {
   if (!value) return "-";
@@ -113,6 +126,8 @@ export function FinanceWorkspace() {
   const [entryAmount, setEntryAmount] = useState(200);
   const [entryDate, setEntryDate] = useState(todayInputValue);
   const [lastSavedAt, setLastSavedAt] = useState("");
+  const [paymentAccount, setPaymentAccount] = useState<PaymentAccount>(defaultPaymentAccount);
+  const [paymentOpen, setPaymentOpen] = useState(false);
   const t = (text: string) => translateText(text, language);
 
   useEffect(() => {
@@ -120,8 +135,9 @@ export function FinanceWorkspace() {
     if (!saved) return;
 
     try {
-      const parsed = JSON.parse(saved) as { balance?: number; contributions?: Contribution[] };
+      const parsed = JSON.parse(saved) as { balance?: number; contributions?: Contribution[]; paymentAccount?: Partial<PaymentAccount> };
       if (typeof parsed.balance === "number") setBaseBalance(parsed.balance);
+      if (parsed.paymentAccount) setPaymentAccount({ ...defaultPaymentAccount, ...parsed.paymentAccount });
       if (Array.isArray(parsed.contributions)) {
         setContributions(
           parsed.contributions.map((item) => ({
@@ -137,9 +153,9 @@ export function FinanceWorkspace() {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify({ balance: baseBalance, reservedUntil, contributions }));
+    window.localStorage.setItem(storageKey, JSON.stringify({ balance: baseBalance, reservedUntil, contributions, paymentAccount }));
     setLastSavedAt(new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }));
-  }, [baseBalance, reservedUntil, contributions]);
+  }, [baseBalance, reservedUntil, contributions, paymentAccount]);
 
   useEffect(() => {
     if (!selectedPlayer && members[0]) setSelectedPlayer(members[0].name);
@@ -406,8 +422,15 @@ export function FinanceWorkspace() {
             </Card>
           ) : (
             <Card>
-              <SectionTitle>{t("My contribution")}</SectionTitle>
-              <p className="mt-4 text-4xl font-black text-[#238923]">{formatDh(myContribution?.amount || 0)}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <SectionTitle>{t("My contribution")}</SectionTitle>
+                  <p className="mt-4 text-4xl font-black text-[#238923]">{formatDh(myContribution?.amount || 0)}</p>
+                </div>
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-lime-100 text-[#2f9e2f]">
+                  <CreditCard className="h-5 w-5" />
+                </span>
+              </div>
               <div className="mt-5 grid gap-3 text-sm">
                 {[
                   [t("Last amount"), myContribution?.lastAmount ? formatDh(myContribution.lastAmount) : "-"],
@@ -420,8 +443,59 @@ export function FinanceWorkspace() {
                   </div>
                 ))}
               </div>
+              <button onClick={() => setPaymentOpen(true)} className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#35b43a] px-5 font-black text-white shadow-[0_16px_30px_rgba(47,158,47,.22)]">
+                <CreditCard className="h-5 w-5" />
+                {t("Make contribution")}
+              </button>
             </Card>
           )}
+
+          <Card>
+            <div className="flex items-center justify-between gap-3">
+              <SectionTitle>{t("Payment account")}</SectionTitle>
+              {!canEdit && (
+                <button onClick={() => setPaymentOpen((value) => !value)} className="rounded-full bg-lime-100 px-3 py-1 text-xs font-black text-[#247e24]">
+                  {paymentOpen ? t("Hide") : t("Show")}
+                </button>
+              )}
+            </div>
+
+            {canEdit ? (
+              <div className="mt-5 space-y-3">
+                {[
+                  ["Account name", "accountName"],
+                  ["Payment method", "bankName"],
+                  ["Account details", "accountNumber"],
+                  ["Payment note", "note"]
+                ].map(([label, key]) => (
+                  <label key={key} className="block">
+                    <span className="text-xs font-black uppercase tracking-[.12em] text-slate-500">{t(label)}</span>
+                    <input
+                      value={paymentAccount[key as keyof PaymentAccount]}
+                      onChange={(event) => setPaymentAccount((current) => ({ ...current, [key]: event.target.value }))}
+                      className="mt-2 h-11 w-full rounded-2xl border border-white/70 bg-white/75 px-4 font-bold text-slate-900 outline-none focus:border-lime-400"
+                    />
+                  </label>
+                ))}
+              </div>
+            ) : paymentOpen ? (
+              <div className="mt-5 space-y-3 text-sm">
+                {[
+                  ["Account name", paymentAccount.accountName],
+                  ["Payment method", paymentAccount.bankName],
+                  ["Account details", paymentAccount.accountNumber],
+                  ["Payment note", paymentAccount.note]
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-2xl bg-white/55 px-4 py-3">
+                    <p className="text-xs font-black uppercase tracking-[.12em] text-slate-500">{t(label)}</p>
+                    <p className="mt-1 font-black text-slate-950">{t(value)}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-4 text-sm font-semibold leading-6 text-slate-600">{t("Open this when you are ready to contribute.")}</p>
+            )}
+          </Card>
 
           <Card>
             <SectionTitle>{canEdit ? t("Finance access") : t("Transparency")}</SectionTitle>

@@ -30,6 +30,24 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Opening balance": { fr: "Solde de depart", ar: "الرصيد الافتتاحي" },
   "Paid on": { fr: "Paye le", ar: "دفع في" },
   "Add payment": { fr: "Ajouter paiement", ar: "إضافة دفعة" },
+  "Make contribution": { fr: "Faire une cotisation", ar: "دفع مساهمة" },
+  "Payment account": { fr: "Compte de paiement", ar: "حساب الدفع" },
+  "Account name": { fr: "Nom du compte", ar: "اسم الحساب" },
+  "Payment method": { fr: "Methode de paiement", ar: "طريقة الدفع" },
+  "Account details": { fr: "Details du compte", ar: "تفاصيل الحساب" },
+  "Payment note": { fr: "Note paiement", ar: "ملاحظة الدفع" },
+  Hide: { fr: "Masquer", ar: "إخفاء" },
+  Show: { fr: "Afficher", ar: "عرض" },
+  "Open this when you are ready to contribute.": {
+    fr: "Ouvre ceci quand tu es pret a cotiser.",
+    ar: "افتح هذا عندما تكون جاهزا للدفع."
+  },
+  "Cash / bank transfer": { fr: "Cash / virement bancaire", ar: "نقدا / تحويل بنكي" },
+  "Ask Najib or Nawfal": { fr: "Demande a Najib ou Nawfal", ar: "اسأل نجيب أو نوفل" },
+  "Send proof after payment.": {
+    fr: "Envoie une preuve apres paiement.",
+    ar: "أرسل إثبات الدفع بعد التحويل."
+  },
   "Add contribution": { fr: "Ajouter cotisation", ar: "إضافة مساهمة" },
   "Contribution ledger": { fr: "Registre des cotisations", ar: "سجل المساهمات" },
   "Player totals, last contribution, and remaining amount.": {
@@ -86,6 +104,13 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   Clear: { fr: "Effacer", ar: "مسح" },
   Item: { fr: "Element", ar: "البند" },
   rows: { fr: "lignes", ar: "صفوف" },
+  "Reserve a field": { fr: "Reserver un terrain", ar: "حجز ملعب" },
+  "Reserve field": { fr: "Reserver terrain", ar: "احجز الملعب" },
+  "Open site": { fr: "Ouvrir site", ar: "فتح الموقع" },
+  "Open Rabat Animation to book the field.": {
+    fr: "Ouvre Rabat Animation pour reserver le terrain.",
+    ar: "افتح موقع رباط أنيميشن لحجز الملعب."
+  },
   Expected: { fr: "Attendu", ar: "المتوقع" },
   "Quick update": { fr: "Mise a jour rapide", ar: "تحديث سريع" },
   "players paid": { fr: "joueurs payes", ar: "لاعبون دفعوا" },

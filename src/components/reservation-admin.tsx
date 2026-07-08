@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useMemo, useState } from "react";
-import { CalendarDays, Clock3, MapPin, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
+import { CalendarDays, Clock3, ExternalLink, MapPin, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { useReservations } from "@/hooks/use-reservations";
 import { useRole } from "@/hooks/use-role";
@@ -15,6 +15,8 @@ import {
   type ReservationStatus
 } from "@/lib/reservations";
 import { ReservationMapLink } from "@/components/reservation-map-link";
+
+const rabatAnimationUrl = "https://rabatanimation.ma/";
 
 const emptyReservation: Reservation = {
   id: "",
@@ -101,6 +103,24 @@ export function ReservationAdmin() {
               ) : (
                 <p className="rounded-2xl border border-orange-100 bg-orange-50 p-4 text-sm font-semibold text-orange-700">No upcoming reservations.</p>
               )}
+            </div>
+          </Card>
+
+          <Card className="order-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <SectionTitle>Reserve a field</SectionTitle>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">Open Rabat Animation to book the field.</p>
+              </div>
+              <a
+                href={rabatAnimationUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#35b43a] px-5 font-black text-white shadow-[0_16px_30px_rgba(47,158,47,.22)]"
+              >
+                {canEdit ? "Reserve field" : "Open site"}
+                <ExternalLink className="h-4 w-4" />
+              </a>
             </div>
           </Card>
 
