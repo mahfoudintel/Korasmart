@@ -20,9 +20,72 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Player Ratings": { fr: "Notes joueurs", ar: "تقييمات اللاعبين" },
   "Rating Summary": { fr: "Resume des notes", ar: "ملخص التقييمات" },
   "Account Ledger": { fr: "Grand livre", ar: "دفتر الحسابات" },
+  "Account ledger": { fr: "Grand livre", ar: "دفتر الحسابات" },
+  Contributions: { fr: "Cotisations", ar: "المساهمات" },
   "Total paid": { fr: "Total paye", ar: "المجموع المدفوع" },
   "Last in": { fr: "Dernier encaissement", ar: "آخر دفعة" },
+  "Last amount": { fr: "Dernier montant", ar: "آخر مبلغ" },
   "Last date": { fr: "Derniere date", ar: "آخر تاريخ" },
+  Remaining: { fr: "Reste", ar: "المتبقي" },
+  "Opening balance": { fr: "Solde de depart", ar: "الرصيد الافتتاحي" },
+  "Paid on": { fr: "Paye le", ar: "دفع في" },
+  "Add payment": { fr: "Ajouter paiement", ar: "إضافة دفعة" },
+  "Add contribution": { fr: "Ajouter cotisation", ar: "إضافة مساهمة" },
+  "Contribution ledger": { fr: "Registre des cotisations", ar: "سجل المساهمات" },
+  "Player totals, last contribution, and remaining amount.": {
+    fr: "Totaux joueurs, derniere cotisation et reste.",
+    ar: "إجمالي اللاعبين وآخر مساهمة والمبلغ المتبقي."
+  },
+  "Search player": { fr: "Chercher joueur", ar: "بحث عن لاعب" },
+  "Unpaid players": { fr: "Joueurs impayes", ar: "لاعبون غير مسددين" },
+  "Booking costs": { fr: "Frais de reservation", ar: "تكاليف الحجز" },
+  "Booking cost is linked to matches.": {
+    fr: "Les frais de reservation sont lies aux matchs.",
+    ar: "تكلفة الحجز مرتبطة بالمباريات."
+  },
+  "New bookings deduct automatically.": {
+    fr: "Les nouveaux bookings sont deduits automatiquement.",
+    ar: "يتم خصم الحجوزات الجديدة تلقائيا."
+  },
+  "Amount needed to reach zero.": {
+    fr: "Montant necessaire pour revenir a zero.",
+    ar: "المبلغ المطلوب للوصول إلى الصفر."
+  },
+  "Caisse is positive.": { fr: "La caisse est positive.", ar: "الصندوق موجب." },
+  "Total paid by players.": { fr: "Total paye par les joueurs.", ar: "إجمالي ما دفعه اللاعبون." },
+  "My contribution": { fr: "Ma cotisation", ar: "مساهمتي" },
+  "Finance access": { fr: "Acces finances", ar: "صلاحية المالية" },
+  Transparency: { fr: "Transparence", ar: "الشفافية" },
+  "You can update contributions and payment dates.": {
+    fr: "Vous pouvez mettre a jour les cotisations et dates.",
+    ar: "يمكنك تحديث المساهمات وتواريخ الدفع."
+  },
+  "Everyone can see contribution totals.": {
+    fr: "Tout le monde peut voir les totaux des cotisations.",
+    ar: "يمكن للجميع رؤية إجمالي المساهمات."
+  },
+  "No booking costs recorded yet.": {
+    fr: "Aucun frais de reservation enregistre.",
+    ar: "لا توجد تكاليف حجز مسجلة بعد."
+  },
+  "Ins, outs, and booking deductions.": {
+    fr: "Entrees, sorties et deductions reservation.",
+    ar: "المداخيل والمصاريف وخصومات الحجز."
+  },
+  Amount: { fr: "Montant", ar: "المبلغ" },
+  Type: { fr: "Type", ar: "النوع" },
+  In: { fr: "Entree", ar: "داخل" },
+  Outflow: { fr: "Sortie", ar: "خارج" },
+  Paid: { fr: "Paye", ar: "مدفوع" },
+  Partial: { fr: "Partiel", ar: "جزئي" },
+  Unpaid: { fr: "Impaye", ar: "غير مدفوع" },
+  Contribution: { fr: "Cotisation", ar: "مساهمة" },
+  Deducted: { fr: "Deduit", ar: "مخصوم" },
+  Reversed: { fr: "Annule", ar: "معكوس" },
+  Action: { fr: "Action", ar: "إجراء" },
+  Clear: { fr: "Effacer", ar: "مسح" },
+  Item: { fr: "Element", ar: "البند" },
+  rows: { fr: "lignes", ar: "صفوف" },
   Expected: { fr: "Attendu", ar: "المتوقع" },
   "Quick update": { fr: "Mise a jour rapide", ar: "تحديث سريع" },
   "players paid": { fr: "joueurs payes", ar: "لاعبون دفعوا" },
