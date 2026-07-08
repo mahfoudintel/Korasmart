@@ -106,23 +106,23 @@ export function ReservationAdmin() {
             </div>
           </Card>
 
-          <Card className="order-4">
+          <section className="order-1 overflow-hidden rounded-[22px] border border-lime-300/70 bg-[#102033]/92 p-4 text-white shadow-[0_20px_48px_rgba(2,20,28,.22)] backdrop-blur-[18px]">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <SectionTitle>Reserve a field</SectionTitle>
-                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">Open Rabat Animation to book the field.</p>
+                <p className="text-xs font-black uppercase tracking-[.18em] text-lime-300">Reserve a field</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-white/78">Book the pitch on Rabat Animation.</p>
               </div>
               <a
                 href={rabatAnimationUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#35b43a] px-5 font-black text-white shadow-[0_16px_30px_rgba(47,158,47,.22)]"
+                className="inline-flex h-14 shrink-0 items-center justify-center gap-2 rounded-2xl bg-lime-300 px-7 text-base font-black text-slate-950 shadow-[0_18px_34px_rgba(190,255,70,.22)] transition hover:bg-lime-200"
               >
                 {canEdit ? "Reserve field" : "Open site"}
                 <ExternalLink className="h-4 w-4" />
               </a>
             </div>
-          </Card>
+          </section>
 
           <Card className="order-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -159,7 +159,7 @@ export function ReservationAdmin() {
             </div>
           </Card>
 
-          <Card className="order-1">
+          <Card className="order-2">
             <SectionTitle>Next Reservation</SectionTitle>
             {nextReservation ? (
               <div className="mt-5 rounded-2xl border border-white/60 bg-lime-50/70 p-5">

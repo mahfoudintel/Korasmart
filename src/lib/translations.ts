@@ -111,6 +111,10 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
     fr: "Ouvre Rabat Animation pour reserver le terrain.",
     ar: "افتح موقع رباط أنيميشن لحجز الملعب."
   },
+  "Book the pitch on Rabat Animation.": {
+    fr: "Reserve le terrain sur Rabat Animation.",
+    ar: "احجز الملعب على رباط أنيميشن."
+  },
   Expected: { fr: "Attendu", ar: "المتوقع" },
   "Quick update": { fr: "Mise a jour rapide", ar: "تحديث سريع" },
   "players paid": { fr: "joueurs payes", ar: "لاعبون دفعوا" },
