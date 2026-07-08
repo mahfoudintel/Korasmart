@@ -415,6 +415,24 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   },
   Username: { fr: "Nom d'utilisateur", ar: "اسم المستخدم" },
   Password: { fr: "Mot de passe", ar: "كلمة المرور" },
+  "New password": { fr: "Nouveau mot de passe", ar: "كلمة مرور جديدة" },
+  "Confirm password": { fr: "Confirmer mot de passe", ar: "تأكيد كلمة المرور" },
+  "Change password": { fr: "Changer mot de passe", ar: "تغيير كلمة المرور" },
+  "Save password": { fr: "Enregistrer mot de passe", ar: "حفظ كلمة المرور" },
+  "Set Your Password": { fr: "Definis ton mot de passe", ar: "حدد كلمة المرور" },
+  "Password updated.": { fr: "Mot de passe mis a jour.", ar: "تم تحديث كلمة المرور." },
+  "Password could not be changed.": {
+    fr: "Le mot de passe n'a pas pu etre change.",
+    ar: "تعذر تغيير كلمة المرور."
+  },
+  "Password must be at least 8 characters.": {
+    fr: "Le mot de passe doit contenir au moins 8 caracteres.",
+    ar: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل."
+  },
+  "Passwords do not match.": {
+    fr: "Les mots de passe ne correspondent pas.",
+    ar: "كلمتا المرور غير متطابقتين."
+  },
   "Invalid username or password.": {
     fr: "Nom d'utilisateur ou mot de passe incorrect.",
     ar: "اسم المستخدم أو كلمة المرور غير صحيح."
@@ -422,6 +440,18 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Prototype login: username is the player name without spaces, password is kora2026.": {
     fr: "Connexion prototype : le nom d'utilisateur est le nom du joueur sans espaces, le mot de passe est kora2026.",
     ar: "تسجيل دخول تجريبي: اسم المستخدم هو اسم اللاعب بدون فراغات، وكلمة المرور هي kora2026."
+  },
+  "Enter your KoraSmart username and password.": {
+    fr: "Entre ton nom d'utilisateur et ton mot de passe KoraSmart.",
+    ar: "أدخل اسم مستخدم وكلمة مرور KoraSmart."
+  },
+  "Use your player username and password to enter KoraSmart.": {
+    fr: "Utilise ton identifiant joueur et ton mot de passe pour entrer dans KoraSmart.",
+    ar: "استخدم اسم المستخدم وكلمة المرور للدخول إلى KoraSmart."
+  },
+  "Welcome back. Choose a private password before entering KoraSmart.": {
+    fr: "Bon retour. Choisis un mot de passe prive avant d'entrer dans KoraSmart.",
+    ar: "مرحبا بعودتك. اختر كلمة مرور خاصة قبل الدخول إلى KoraSmart."
   },
   Cancel: { fr: "Annuler", ar: "إلغاء" },
   Logout: { fr: "Deconnexion", ar: "تسجيل الخروج" },

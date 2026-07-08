@@ -180,7 +180,7 @@ function LoginForm({ onLocalLogin }: { onLocalLogin?: (username: string, passwor
             onChange={(event) => setUsername(event.target.value)}
             autoComplete="username"
             className="mt-2 h-12 w-full rounded-2xl border border-white/80 bg-white/75 px-4 font-black text-slate-950 outline-none focus:border-lime-400"
-            placeholder="Najib"
+            placeholder="username"
             required
           />
         </label>
@@ -193,6 +193,7 @@ function LoginForm({ onLocalLogin }: { onLocalLogin?: (username: string, passwor
             onChange={(event) => setPassword(event.target.value)}
             autoComplete="current-password"
             className="mt-2 h-12 w-full rounded-2xl border border-white/80 bg-white/75 px-4 font-black text-slate-950 outline-none focus:border-lime-400"
+            placeholder="password"
             required
           />
         </label>
@@ -256,7 +257,7 @@ function ChangePasswordForm({ profile }: { profile: MemberProfile | null }) {
     <main className="field-bg grid min-h-screen place-items-center px-4 py-10">
       <form onSubmit={savePassword} className="w-full max-w-md rounded-[28px] border border-white/12 bg-black/35 p-6 shadow-2xl backdrop-blur-xl">
         <h1 className="text-3xl font-black text-white">Set Your Password</h1>
-        <p className="mt-2 text-sm leading-6 text-white/68">Welcome {profile?.name || "back"}. Choose a private password before entering KoraSmart.</p>
+        <p className="mt-2 text-sm leading-6 text-white/68">Welcome back. Choose a private password before entering KoraSmart.</p>
 
         <label className="mt-6 block text-sm font-bold text-white/72">
           New password

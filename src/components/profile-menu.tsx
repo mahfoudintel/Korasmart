@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
-import { Camera, ChevronDown, Eye, LogIn, LogOut, Save, ShieldCheck, X } from "lucide-react";
+import { Camera, ChevronDown, Eye, KeyRound, LogIn, LogOut, Save, ShieldCheck, X } from "lucide-react";
+import { useAuth } from "@/components/auth-provider";
 import { canImpersonate, roleLabels } from "@/lib/access";
 import { players } from "@/lib/data";
 import { useLocalProfile } from "@/hooks/use-local-profile";
 import { useRole } from "@/hooks/use-role";
 import { useOutsideDismiss } from "@/hooks/use-outside-dismiss";
+import { supabase } from "@/lib/supabase";
 
 const avatarPresets = Array.from({ length: 20 }, (_, index) => `/images/avatars/avatar-${String(index + 1).padStart(2, "0")}.png`);
 
@@ -16,8 +18,14 @@ export function ProfileMenu() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [passwordPanelOpen, setPasswordPanelOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
   const [impersonationTarget, setImpersonationTarget] = useState(players[0]?.name || "");
-  const { profile, updateProfile, loginWithCredentials, logout, impersonatePlayer, stopImpersonating } = useLocalProfile();
+  const { profile, updateProfile, loginWithCredentials, changeLocalPassword, logout, impersonatePlayer, stopImpersonating } = useLocalProfile();
+  const { profile: authProfile, session } = useAuth();
   const { role } = useRole();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -52,6 +60,42 @@ export function ProfileMenu() {
 
     setLoginError("");
     setPassword("");
+  };
+  const saveNewPassword = async () => {
+    if (newPassword.length < 8) {
+      setPasswordMessage("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage("Passwords do not match.");
+      return;
+    }
+
+    setPasswordSaving(true);
+    setPasswordMessage("");
+
+    if (session && supabase) {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        setPasswordMessage(error.message);
+        setPasswordSaving(false);
+        return;
+      }
+
+      if (authProfile?.id) {
+        await supabase.from("players").update({ must_change_password: false }).eq("id", authProfile.id);
+      }
+    } else if (!changeLocalPassword(newPassword)) {
+      setPasswordMessage("Password could not be changed.");
+      setPasswordSaving(false);
+      return;
+    }
+
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordMessage("Password updated.");
+    setPasswordSaving(false);
   };
 
   return (
@@ -174,6 +218,57 @@ export function ProfileMenu() {
                   <p className="mt-1 text-xs leading-relaxed text-slate-500">Access: {roleLabels[role]}</p>
                 </div>
 
+                {!profile.impersonatorPlayerName && (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                    <button
+                      onClick={() => {
+                        setPasswordPanelOpen((value) => !value);
+                        setPasswordMessage("");
+                      }}
+                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 text-sm font-black text-white"
+                    >
+                      <KeyRound className="h-4 w-4" />
+                      Change password
+                    </button>
+
+                    {passwordPanelOpen && (
+                      <div className="mt-3 grid gap-3">
+                        <label className="text-xs font-bold text-slate-600">
+                          New password
+                          <input
+                            type="password"
+                            value={newPassword}
+                            onChange={(event) => setNewPassword(event.target.value)}
+                            autoComplete="new-password"
+                            className="mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 font-black text-slate-950 outline-none focus:border-lime-400"
+                          />
+                        </label>
+                        <label className="text-xs font-bold text-slate-600">
+                          Confirm password
+                          <input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(event) => setConfirmPassword(event.target.value)}
+                            autoComplete="new-password"
+                            className="mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 font-black text-slate-950 outline-none focus:border-lime-400"
+                          />
+                        </label>
+                        {passwordMessage && (
+                          <p className="rounded-2xl bg-white p-3 text-xs font-bold text-slate-600">{passwordMessage}</p>
+                        )}
+                        <button
+                          onClick={saveNewPassword}
+                          disabled={passwordSaving}
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[#49b848] px-4 text-sm font-black text-white disabled:opacity-60"
+                        >
+                          <Save className="h-4 w-4" />
+                          {passwordSaving ? "Saving..." : "Save password"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {canStartImpersonation && (
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                     <p className="text-xs font-bold text-slate-600">Impersonate player</p>
@@ -218,7 +313,7 @@ export function ProfileMenu() {
                 <input
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
-                  placeholder="najib"
+                  placeholder="username"
                   className="mt-2 h-11 w-full rounded-2xl border border-white/60 bg-white/60 px-3 font-black text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </label>
@@ -229,13 +324,13 @@ export function ProfileMenu() {
                   onChange={(event) => setPassword(event.target.value)}
                   onKeyDown={(event) => event.key === "Enter" && submitLogin()}
                   type="password"
-                  placeholder="kora2026"
+                  placeholder="password"
                   className="mt-2 h-11 w-full rounded-2xl border border-white/60 bg-white/60 px-3 font-black text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </label>
               {loginError && <p className="rounded-2xl border border-orange-300/40 bg-orange-100 p-3 text-xs font-bold text-orange-700">{loginError}</p>}
               <p className="rounded-2xl bg-white/50 p-3 text-xs leading-relaxed text-slate-500">
-                Prototype login: username is the player name without spaces, password is kora2026.
+                Enter your KoraSmart username and password.
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={closeMenu} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/60 bg-white/40 px-4 text-sm font-black text-slate-700">

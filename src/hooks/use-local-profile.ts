@@ -93,6 +93,10 @@ function saveProfile(profile: LocalProfile) {
   window.dispatchEvent(new Event(profileChangedEvent));
 }
 
+function saveUsers(users: LocalUser[]) {
+  window.localStorage.setItem(usersStorageKey, JSON.stringify(users));
+}
+
 export function useLocalProfile() {
   const { profile: authProfile, session, signOut } = useAuth();
   const [profile, setProfileState] = useState<LocalProfile>(defaultProfile);
@@ -189,6 +193,16 @@ export function useLocalProfile() {
 
     return true;
   };
+  const changeLocalPassword = (nextPassword: string) => {
+    if (session || !profile.loggedIn) return false;
+    const username = profile.impersonatorUsername || profile.username;
+    const users = readUsers();
+    const existing = users.find((item) => item.username === username);
+    if (!existing) return false;
+
+    saveUsers(users.map((item) => (item.username === username ? { ...item, password: nextPassword } : item)));
+    return true;
+  };
   const logout = () => {
     if (session) void signOut();
     updateProfile({ loggedIn: false });
@@ -243,6 +257,7 @@ export function useLocalProfile() {
     updateProfile,
     login,
     loginWithCredentials,
+    changeLocalPassword,
     logout,
     impersonatePlayer,
     stopImpersonating
