@@ -698,6 +698,26 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Superuser access is required for this diagnostic page.": {
     fr: "Un acces superutilisateur est requis pour cette page de diagnostic.",
     ar: "هذه الصفحة التشخيصية تتطلب صلاحية المستخدم الفائق."
+  },
+  "Install app": { fr: "Installer l'app", ar: "تثبيت التطبيق" },
+  Install: { fr: "Installer", ar: "تثبيت" },
+  "Download app": { fr: "Telecharger l'app", ar: "تحميل التطبيق" },
+  "Install KoraSmart": { fr: "Installer KoraSmart", ar: "تثبيت KoraSmart" },
+  "On iPhone, open this site in Safari.": {
+    fr: "Sur iPhone, ouvrez ce site dans Safari.",
+    ar: "على iPhone، افتح هذا الموقع في Safari."
+  },
+  "Tap Share, then Add to Home Screen.": {
+    fr: "Touchez Partager, puis Ajouter a l'ecran d'accueil.",
+    ar: "اضغط مشاركة، ثم إضافة إلى الشاشة الرئيسية."
+  },
+  "Open your browser menu and choose Install app.": {
+    fr: "Ouvrez le menu du navigateur et choisissez Installer l'app.",
+    ar: "افتح قائمة المتصفح واختر تثبيت التطبيق."
+  },
+  "KoraSmart will appear on your home screen like a normal app.": {
+    fr: "KoraSmart apparaitra sur votre ecran d'accueil comme une app normale.",
+    ar: "سيظهر KoraSmart على الشاشة الرئيسية مثل تطبيق عادي."
   }
 };
 

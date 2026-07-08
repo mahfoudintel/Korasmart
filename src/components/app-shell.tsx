@@ -12,6 +12,7 @@ import { FootballLogo } from "@/components/football-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { NextMatchAttendance } from "@/components/next-match-attendance";
 import { AppNotifications } from "@/components/app-notifications";
+import { InstallAppButton } from "@/components/install-app-button";
 import { ProfileMenu } from "@/components/profile-menu";
 import { ChatDock } from "@/components/chat-dock";
 
@@ -96,6 +97,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex min-w-0 shrink-0 items-center justify-end gap-1.5 sm:ml-auto sm:gap-3">
               <LanguageSwitcher />
               <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
+                <InstallAppButton />
                 <AppNotifications />
                 <ProfileMenu />
               </div>
