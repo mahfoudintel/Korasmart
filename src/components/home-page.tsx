@@ -70,13 +70,13 @@ function TeamPreview({ teamA, teamB }: { teamA: string[]; teamB: string[] }) {
 
 function StatusCard({ icon: Icon, title, children, href, action }: { icon: StatusCardIcon; title: string; children: React.ReactNode; href: string; action: string }) {
   return (
-    <Card className="min-h-[190px]">
-      <div className="flex items-center gap-3">
-        <Icon className="h-6 w-6 text-slate-900" />
+    <Card className="flex min-h-[190px] flex-col">
+      <div className="flex min-h-7 items-center gap-3">
+        <Icon className="h-5 w-5 shrink-0 text-slate-900" />
         <SectionTitle>{title}</SectionTitle>
       </div>
-      <div className="mt-5 min-h-[72px]">{children}</div>
-      <Link href={href} className="mt-3 flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/70 text-sm font-extrabold text-slate-800">
+      <div className="mt-5 flex min-h-[78px] flex-1 flex-col justify-start">{children}</div>
+      <Link href={href} className="mt-4 flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/74 text-sm font-extrabold text-slate-800">
         {action} <ArrowRight className="h-4 w-4" />
       </Link>
     </Card>
@@ -299,20 +299,20 @@ export function HomePage() {
       <div className={attendanceIsOpen ? "hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-4" : "grid gap-4 md:grid-cols-2 xl:grid-cols-4"}>
         <StatusCard icon={WalletCards} title="Booking Status" href="/finances" action="View finances">
           <p className="text-sm font-black text-red-600">Not paid</p>
-          <p className="mt-5 text-sm text-slate-500">Total</p>
+          <p className="mt-4 text-sm text-slate-500">Total</p>
           <p className="text-2xl font-black text-slate-950">400 <span className="text-sm">MAD</span></p>
         </StatusCard>
         <StatusCard icon={Trophy} title="Last Match" href="/matches" action="Match report">
-          <p className="text-center text-sm text-slate-500">{lastReservation ? formatReservationDate(lastReservation.date) : "No past game"}</p>
-          <p className="mt-2 text-center text-3xl font-black text-slate-950">{lastReservation?.matchReport ? `${lastReservation.matchReport.fluorescentScore} - ${lastReservation.matchReport.orangeScore}` : "—"}</p>
+          <p className="text-sm text-slate-500">{lastReservation ? formatReservationDate(lastReservation.date) : "No past game"}</p>
+          <p className="mt-4 text-3xl font-black leading-none text-slate-950">{lastReservation?.matchReport ? `${lastReservation.matchReport.fluorescentScore} - ${lastReservation.matchReport.orangeScore}` : "—"}</p>
         </StatusCard>
         <StatusCard icon={WalletCards} title="Budget" href="/finances" action="View finances">
           <p className="text-sm text-slate-500">Current balance</p>
-          <p className="mt-2 text-2xl font-black text-[#168332]">{formatDh(currentBalance)}</p>
+          <p className="mt-4 text-2xl font-black leading-none text-[#168332]">{formatDh(currentBalance)}</p>
         </StatusCard>
         <StatusCard icon={Users} title="Your Status" href="/players" action="View profile">
           <p className="flex items-center gap-2 text-sm font-black text-[#168332]"><CheckCircle2 className="h-5 w-5" /> {currentStatus === "playing" ? "Confirmed" : currentStatus === "waiting" ? "Waiting" : "Not set"}</p>
-          <p className="mt-5 text-center font-black text-[#168332]">{currentStatus === "playing" ? "Team A" : "—"}</p>
+          <p className="mt-4 text-2xl font-black leading-none text-[#168332]">{currentStatus === "playing" ? "Team A" : "—"}</p>
         </StatusCard>
       </div>
 
