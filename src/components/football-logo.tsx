@@ -23,7 +23,7 @@ export function FootballLogo({ compact = false, inverse = false, mobileTight = f
           className="object-contain"
         />
       </span>
-      <span className={cn("min-w-0 whitespace-nowrap text-[1.34rem] font-black italic leading-none tracking-normal", mobileTight && "text-[1.12rem] sm:text-[1.34rem]", inverse ? "text-white" : "text-slate-950")}>
+      <span className={cn("min-w-0 whitespace-nowrap text-[1.34rem] font-black italic leading-none tracking-normal", mobileTight && "text-[clamp(1rem,6vw,1.34rem)]", inverse ? "text-white" : "text-slate-950")}>
         KORA<span className="text-[#2f9e2f]">SMART</span>
       </span>
     </Link>

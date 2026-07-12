@@ -86,8 +86,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <main className="min-w-0 w-full px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8 lg:pt-5">
-          <header className="mb-5 flex items-center justify-between gap-3 sm:mb-8">
-            <div className="min-w-0 shrink lg:hidden">
+          <header className="mb-5 grid gap-3 sm:mb-8 sm:flex sm:items-center sm:justify-between lg:flex">
+            <div className="min-w-0 lg:hidden">
               <FootballLogo compact mobileTight />
             </div>
             <div className="hidden lg:block">
