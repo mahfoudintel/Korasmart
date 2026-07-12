@@ -1,5 +1,11 @@
-const CACHE_NAME = "korasmart-app-v1";
+const CACHE_NAME = "korasmart-app-v2";
 const APP_SHELL = ["/", "/manifest.webmanifest"];
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

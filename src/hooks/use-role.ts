@@ -11,7 +11,19 @@ export function useRole() {
   const [role, setRole] = useState<UserRole>("player");
 
   useEffect(() => {
-    const syncRole = () => setRole(authProfile?.role || (profile.loggedIn ? getRoleForPlayer(profile.playerName) : "player"));
+    const syncRole = () => {
+      if (!profile.loggedIn) {
+        setRole("player");
+        return;
+      }
+
+      if (profile.impersonatorPlayerName) {
+        setRole(getRoleForPlayer(profile.playerName));
+        return;
+      }
+
+      setRole(authProfile?.role || getRoleForPlayer(profile.playerName));
+    };
     syncRole();
 
     window.addEventListener("storage", syncRole);
@@ -21,7 +33,7 @@ export function useRole() {
       window.removeEventListener("storage", syncRole);
       window.removeEventListener(accessAssignmentsChangedEvent, syncRole);
     };
-  }, [authProfile?.role, profile.loggedIn, profile.playerName]);
+  }, [authProfile?.role, profile.impersonatorPlayerName, profile.loggedIn, profile.playerName]);
 
   return { role };
 }
