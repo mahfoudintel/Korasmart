@@ -86,15 +86,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <main className="min-w-0 w-full px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8 lg:pt-5">
-          <header className="mb-5 grid gap-3 sm:mb-8 sm:flex sm:items-center sm:justify-between lg:flex">
-            <div className="min-w-0 lg:hidden">
+          <header className="korasmart-mobile-header mb-5 grid gap-3 sm:mb-8 sm:flex sm:items-center sm:justify-between lg:flex">
+            <div className="korasmart-mobile-logo min-w-0 lg:hidden">
               <FootballLogo compact mobileTight />
             </div>
             <div className="hidden lg:block">
               <h1 className="text-3xl font-extrabold text-slate-900 xl:text-4xl">{pageCopy.title}</h1>
               <p className="mt-2 text-base font-medium text-slate-700">{pageCopy.subtitle}</p>
             </div>
-            <div className="flex min-w-0 shrink-0 items-center justify-end gap-1.5 sm:ml-auto sm:gap-3">
+            <div className="korasmart-mobile-controls flex min-w-0 shrink-0 items-center justify-end gap-1.5 sm:ml-auto sm:gap-3">
               <LanguageSwitcher />
               <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
                 <InstallAppButton />

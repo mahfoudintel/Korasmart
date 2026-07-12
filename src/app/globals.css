@@ -124,3 +124,21 @@ a {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+@media (display-mode: standalone) and (max-width: 639px) {
+  .korasmart-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .korasmart-mobile-logo {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .korasmart-mobile-controls {
+    flex: 0 0 auto;
+  }
+}
