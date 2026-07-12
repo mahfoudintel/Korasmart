@@ -27,7 +27,17 @@ type LocalUser = {
   avatarPreset: string;
 };
 
+type ImpersonationState = {
+  targetPlayerName: string;
+  impersonatorUsername: string;
+  impersonatorPlayerName: string;
+  impersonatorDisplayName: string;
+  impersonatorAvatarDataUrl: string;
+  impersonatorAvatarPreset: string;
+};
+
 const storageKey = "korasmart-local-profile-v1";
+const impersonationStorageKey = "korasmart-active-impersonation-v1";
 const usersStorageKey = "korasmart-local-users-v1";
 const profileChangedEvent = "korasmart-local-profile-changed";
 
@@ -97,6 +107,40 @@ function saveUsers(users: LocalUser[]) {
   window.localStorage.setItem(usersStorageKey, JSON.stringify(users));
 }
 
+function readImpersonation(): ImpersonationState | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const saved = window.localStorage.getItem(impersonationStorageKey);
+    if (!saved) return null;
+
+    const parsed = JSON.parse(saved) as Partial<ImpersonationState>;
+    if (!parsed.targetPlayerName || !parsed.impersonatorPlayerName || !parsed.impersonatorUsername) return null;
+    return {
+      targetPlayerName: parsed.targetPlayerName,
+      impersonatorUsername: parsed.impersonatorUsername,
+      impersonatorPlayerName: parsed.impersonatorPlayerName,
+      impersonatorDisplayName: parsed.impersonatorDisplayName || parsed.impersonatorPlayerName,
+      impersonatorAvatarDataUrl: parsed.impersonatorAvatarDataUrl || "",
+      impersonatorAvatarPreset: parsed.impersonatorAvatarPreset || getDefaultUserForPlayer(parsed.impersonatorPlayerName)?.avatarPreset || "/images/avatars/avatar-01.png"
+    };
+  } catch {
+    window.localStorage.removeItem(impersonationStorageKey);
+    return null;
+  }
+}
+
+function saveImpersonation(impersonation: ImpersonationState) {
+  window.localStorage.setItem(impersonationStorageKey, JSON.stringify(impersonation));
+  window.dispatchEvent(new Event(profileChangedEvent));
+}
+
+function clearImpersonation() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(impersonationStorageKey);
+  window.dispatchEvent(new Event(profileChangedEvent));
+}
+
 export function useLocalProfile() {
   const { profile: authProfile, session, signOut } = useAuth();
   const [profile, setProfileState] = useState<LocalProfile>(defaultProfile);
@@ -141,35 +185,54 @@ export function useLocalProfile() {
     if (!session || !authProfile) return;
 
     const savedProfile = readProfile();
+    const savedImpersonation = readImpersonation();
     const authUsername = authProfile.username || normalizeUsername(authProfile.name);
     const impersonationBelongsToAuthUser =
+      savedImpersonation?.impersonatorPlayerName === authProfile.name ||
+      savedImpersonation?.impersonatorUsername === authUsername ||
       savedProfile.impersonatorPlayerName === authProfile.name ||
       savedProfile.impersonatorUsername === authUsername;
 
-    if (savedProfile.impersonatorPlayerName && impersonationBelongsToAuthUser) {
-      const impersonatedUser = getDefaultUserForPlayer(savedProfile.playerName);
+    if ((savedImpersonation || savedProfile.impersonatorPlayerName) && impersonationBelongsToAuthUser) {
+      const targetPlayerName = savedImpersonation?.targetPlayerName || savedProfile.playerName;
+      const impersonatedUser = getDefaultUserForPlayer(targetPlayerName);
       const impersonationProfile: LocalProfile = {
         ...savedProfile,
         username: impersonatedUser?.username || savedProfile.username,
-        playerName: impersonatedUser?.playerName || savedProfile.playerName,
-        displayName: savedProfile.displayName || impersonatedUser?.playerName || savedProfile.playerName,
-        avatarDataUrl: savedProfile.avatarDataUrl || "",
-        avatarPreset: savedProfile.avatarPreset || impersonatedUser?.avatarPreset || "/images/avatars/avatar-01.png",
+        playerName: impersonatedUser?.playerName || targetPlayerName,
+        displayName: impersonatedUser?.playerName || targetPlayerName,
+        avatarDataUrl: savedProfile.playerName === targetPlayerName ? savedProfile.avatarDataUrl || "" : "",
+        avatarPreset: savedProfile.playerName === targetPlayerName && savedProfile.avatarPreset
+          ? savedProfile.avatarPreset
+          : impersonatedUser?.avatarPreset || "/images/avatars/avatar-01.png",
         loggedIn: true,
-        impersonatorUsername: savedProfile.impersonatorUsername || authUsername,
-        impersonatorPlayerName: savedProfile.impersonatorPlayerName,
-        impersonatorDisplayName: savedProfile.impersonatorDisplayName || authProfile.name,
-        impersonatorAvatarDataUrl: savedProfile.impersonatorAvatarDataUrl || "",
+        impersonatorUsername: savedImpersonation?.impersonatorUsername || savedProfile.impersonatorUsername || authUsername,
+        impersonatorPlayerName: savedImpersonation?.impersonatorPlayerName || savedProfile.impersonatorPlayerName || authProfile.name,
+        impersonatorDisplayName: savedImpersonation?.impersonatorDisplayName || savedProfile.impersonatorDisplayName || authProfile.name,
+        impersonatorAvatarDataUrl: savedImpersonation?.impersonatorAvatarDataUrl || savedProfile.impersonatorAvatarDataUrl || "",
         impersonatorAvatarPreset:
+          savedImpersonation?.impersonatorAvatarPreset ||
           savedProfile.impersonatorAvatarPreset ||
           authProfile.avatar_preset ||
           getDefaultUserForPlayer(authProfile.name)?.avatarPreset ||
           "/images/avatars/avatar-01.png"
       };
 
+      saveImpersonation({
+        targetPlayerName: impersonationProfile.playerName,
+        impersonatorUsername: impersonationProfile.impersonatorUsername || authUsername,
+        impersonatorPlayerName: impersonationProfile.impersonatorPlayerName || authProfile.name,
+        impersonatorDisplayName: impersonationProfile.impersonatorDisplayName || authProfile.name,
+        impersonatorAvatarDataUrl: impersonationProfile.impersonatorAvatarDataUrl || "",
+        impersonatorAvatarPreset: impersonationProfile.impersonatorAvatarPreset || "/images/avatars/avatar-01.png"
+      });
       setProfileState(impersonationProfile);
       saveProfile(impersonationProfile);
       return;
+    }
+
+    if (savedImpersonation && !impersonationBelongsToAuthUser) {
+      clearImpersonation();
     }
 
     const sameAuthenticatedPlayer = savedProfile.playerName === authProfile.name || savedProfile.username === authUsername;
@@ -216,6 +279,7 @@ export function useLocalProfile() {
     if (!user) return false;
 
     const samePlayer = profile.playerName === user.playerName;
+    clearImpersonation();
 
     setProfile({
       ...profile,
@@ -245,6 +309,7 @@ export function useLocalProfile() {
     return true;
   };
   const logout = () => {
+    clearImpersonation();
     if (session) void signOut();
     updateProfile({ loggedIn: false });
   };
@@ -256,13 +321,23 @@ export function useLocalProfile() {
     const user = getDefaultUserForPlayer(playerName);
     if (!user) return false;
 
-    setProfile({
-      ...profile,
+    const impersonation: ImpersonationState = {
+      targetPlayerName: user.playerName,
       impersonatorUsername: profile.impersonatorUsername || profile.username,
       impersonatorPlayerName: sourcePlayerName,
       impersonatorDisplayName: profile.impersonatorDisplayName || profile.displayName,
       impersonatorAvatarDataUrl: profile.impersonatorAvatarDataUrl ?? profile.avatarDataUrl,
-      impersonatorAvatarPreset: profile.impersonatorAvatarPreset || profile.avatarPreset,
+      impersonatorAvatarPreset: profile.impersonatorAvatarPreset || profile.avatarPreset
+    };
+
+    saveImpersonation(impersonation);
+    setProfile({
+      ...profile,
+      impersonatorUsername: impersonation.impersonatorUsername,
+      impersonatorPlayerName: impersonation.impersonatorPlayerName,
+      impersonatorDisplayName: impersonation.impersonatorDisplayName,
+      impersonatorAvatarDataUrl: impersonation.impersonatorAvatarDataUrl,
+      impersonatorAvatarPreset: impersonation.impersonatorAvatarPreset,
       username: user.username,
       playerName: user.playerName,
       displayName: user.playerName,
@@ -276,6 +351,7 @@ export function useLocalProfile() {
   const stopImpersonating = () => {
     if (!profile.impersonatorPlayerName) return;
 
+    clearImpersonation();
     setProfile({
       ...profile,
       username: profile.impersonatorUsername || profile.username,
