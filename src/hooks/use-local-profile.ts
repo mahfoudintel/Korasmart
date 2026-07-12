@@ -142,6 +142,36 @@ export function useLocalProfile() {
 
     const savedProfile = readProfile();
     const authUsername = authProfile.username || normalizeUsername(authProfile.name);
+    const impersonationBelongsToAuthUser =
+      savedProfile.impersonatorPlayerName === authProfile.name ||
+      savedProfile.impersonatorUsername === authUsername;
+
+    if (savedProfile.impersonatorPlayerName && impersonationBelongsToAuthUser) {
+      const impersonatedUser = getDefaultUserForPlayer(savedProfile.playerName);
+      const impersonationProfile: LocalProfile = {
+        ...savedProfile,
+        username: impersonatedUser?.username || savedProfile.username,
+        playerName: impersonatedUser?.playerName || savedProfile.playerName,
+        displayName: savedProfile.displayName || impersonatedUser?.playerName || savedProfile.playerName,
+        avatarDataUrl: savedProfile.avatarDataUrl || "",
+        avatarPreset: savedProfile.avatarPreset || impersonatedUser?.avatarPreset || "/images/avatars/avatar-01.png",
+        loggedIn: true,
+        impersonatorUsername: savedProfile.impersonatorUsername || authUsername,
+        impersonatorPlayerName: savedProfile.impersonatorPlayerName,
+        impersonatorDisplayName: savedProfile.impersonatorDisplayName || authProfile.name,
+        impersonatorAvatarDataUrl: savedProfile.impersonatorAvatarDataUrl || "",
+        impersonatorAvatarPreset:
+          savedProfile.impersonatorAvatarPreset ||
+          authProfile.avatar_preset ||
+          getDefaultUserForPlayer(authProfile.name)?.avatarPreset ||
+          "/images/avatars/avatar-01.png"
+      };
+
+      setProfileState(impersonationProfile);
+      saveProfile(impersonationProfile);
+      return;
+    }
+
     const sameAuthenticatedPlayer = savedProfile.playerName === authProfile.name || savedProfile.username === authUsername;
 
     const authenticatedProfile: LocalProfile = {
