@@ -1,20 +1,20 @@
 export const financeSnapshot = {
   currency: "dh",
-  balance: -170,
-  reservedUntil: "2026-07-27",
-  reservationNote: "Terrain reserve chaque semaine jusqu'au 27/07/2026",
+  balance: 230,
+  reservedUntil: "2026-08-31",
+  reservationNote: "Terrain reserve chaque semaine jusqu'au 31/08/2026",
   contributions: [
-    { player: "Nawfal", amount: 300 },
-    { player: "Elhachmi", amount: 300 },
-    { player: "Said", amount: 200 },
-    { player: "Badr", amount: 300 },
-    { player: "Abdou", amount: 200 },
-    { player: "Abdelhamid", amount: 100 },
-    { player: "Ahmed G", amount: 200 },
-    { player: "Ismail", amount: 200 },
-    { player: "Najib", amount: 100 },
-    { player: "Ahmed A", amount: 100 },
-    { player: "Driss", amount: 100 }
+    { player: "Nawfal", amount: 300, lastAmount: 300, lastDate: "2026-07-14" },
+    { player: "Elhachmi", amount: 300, lastAmount: 300, lastDate: "2026-07-14" },
+    { player: "Said", amount: 200, lastAmount: 200, lastDate: "2026-07-14" },
+    { player: "Badr", amount: 300, lastAmount: 300, lastDate: "2026-07-14" },
+    { player: "Abdou", amount: 200, lastAmount: 200, lastDate: "2026-07-14" },
+    { player: "Abdelhamid", amount: 200, lastAmount: 200, lastDate: "2026-07-14" },
+    { player: "Ahmed G", amount: 400, lastAmount: 400, lastDate: "2026-07-14" },
+    { player: "Ismail", amount: 300, lastAmount: 300, lastDate: "2026-07-14" },
+    { player: "Najib", amount: 100, lastAmount: 100, lastDate: "2026-07-14" },
+    { player: "Ahmed A", amount: 100, lastAmount: 100, lastDate: "2026-07-14" },
+    { player: "Driss", amount: 100, lastAmount: 100, lastDate: "2026-07-14" }
   ]
 };
 

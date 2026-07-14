@@ -76,6 +76,56 @@ export const defaultReservations: Reservation[] = [
     durationMinutes: 60,
     sport: "Football",
     status: "upcoming"
+  },
+  {
+    id: "res-2026-08-03",
+    date: "2026-08-03",
+    time: "20:00",
+    venue: "LYCEE IBN ROCHD",
+    field: "F6-10",
+    durationMinutes: 60,
+    sport: "Football",
+    status: "upcoming"
+  },
+  {
+    id: "res-2026-08-10",
+    date: "2026-08-10",
+    time: "20:00",
+    venue: "LYCEE IBN ROCHD",
+    field: "F6-10",
+    durationMinutes: 60,
+    sport: "Football",
+    status: "upcoming"
+  },
+  {
+    id: "res-2026-08-17",
+    date: "2026-08-17",
+    time: "20:00",
+    venue: "LYCEE IBN ROCHD",
+    field: "F6-10",
+    durationMinutes: 60,
+    sport: "Football",
+    status: "upcoming"
+  },
+  {
+    id: "res-2026-08-24",
+    date: "2026-08-24",
+    time: "20:00",
+    venue: "LYCEE IBN ROCHD",
+    field: "F6-10",
+    durationMinutes: 60,
+    sport: "Football",
+    status: "upcoming"
+  },
+  {
+    id: "res-2026-08-31",
+    date: "2026-08-31",
+    time: "20:00",
+    venue: "LYCEE IBN ROCHD",
+    field: "F6-10",
+    durationMinutes: 60,
+    sport: "Football",
+    status: "upcoming"
   }
 ];
 

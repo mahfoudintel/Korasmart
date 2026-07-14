@@ -40,6 +40,7 @@ type PaymentAccount = {
 };
 
 const storageKey = "korasmart-finance-admin-v1";
+const storageVersion = "2026-08-31-budget";
 const expectedContribution = 200;
 const todayInputValue = () => new Date().toISOString().slice(0, 10);
 const defaultPaymentAccount: PaymentAccount = {
@@ -135,9 +136,11 @@ export function FinanceWorkspace() {
     if (!saved) return;
 
     try {
-      const parsed = JSON.parse(saved) as { balance?: number; contributions?: Contribution[]; paymentAccount?: Partial<PaymentAccount> };
-      if (typeof parsed.balance === "number") setBaseBalance(parsed.balance);
+      const parsed = JSON.parse(saved) as { version?: string; balance?: number; contributions?: Contribution[]; paymentAccount?: Partial<PaymentAccount> };
       if (parsed.paymentAccount) setPaymentAccount({ ...defaultPaymentAccount, ...parsed.paymentAccount });
+      if (parsed.version !== storageVersion) return;
+
+      if (typeof parsed.balance === "number") setBaseBalance(parsed.balance);
       if (Array.isArray(parsed.contributions)) {
         setContributions(
           parsed.contributions.map((item) => ({
@@ -153,7 +156,7 @@ export function FinanceWorkspace() {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify({ balance: baseBalance, reservedUntil, contributions, paymentAccount }));
+    window.localStorage.setItem(storageKey, JSON.stringify({ version: storageVersion, balance: baseBalance, reservedUntil, contributions, paymentAccount }));
     setLastSavedAt(new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }));
   }, [baseBalance, reservedUntil, contributions, paymentAccount]);
 
