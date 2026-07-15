@@ -158,6 +158,15 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Key Stats": { fr: "Stats cles", ar: "احصائيات مهمة" },
   "Teams not recorded yet.": { fr: "Equipes pas encore enregistrees.", ar: "الفرق لم تسجل بعد." },
   "Not recorded": { fr: "Non enregistre", ar: "غير مسجل" },
+  "Balanced teams": { fr: "Equipes equilibrees", ar: "فرق متوازنة" },
+  "Selection pool": { fr: "Groupe selectionne", ar: "مجموعة الاختيار" },
+  "Balance gap": { fr: "Ecart d'equilibre", ar: "فارق التوازن" },
+  "confirmed players": { fr: "joueurs confirmes", ar: "لاعبون مؤكدون" },
+  "Data used": { fr: "Donnees utilisees", ar: "البيانات المستخدمة" },
+  "Teams use attendance first, then anonymous peer ratings, recorded goals, appearances, wins, and result margin.": {
+    fr: "Les equipes utilisent d'abord la presence, puis les notes anonymes, buts, matchs joues, victoires et ecart de score.",
+    ar: "تستخدم الفرق الحضور اولا، ثم التقييمات المجهولة، الاهداف، المشاركات، الانتصارات وفارق النتيجة."
+  },
   "View on match": { fr: "Voir le match", ar: "عرض المباراة" },
   "Team A": { fr: "Equipe A", ar: "الفريق أ" },
   "Team B": { fr: "Equipe B", ar: "الفريق ب" },

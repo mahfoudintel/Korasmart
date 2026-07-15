@@ -9,6 +9,8 @@ export const ratingIndicators = [
 
 export type RatingIndicator = (typeof ratingIndicators)[number]["key"];
 export type RatingValues = Record<RatingIndicator, number>;
+export type PeerRatings = Record<string, Record<string, RatingValues>>;
+export const ratingsStorageKey = "korasmart-peer-ratings-v1";
 export const defaultRatingValue = 5;
 
 export const emptyRatingValues = ratingIndicators.reduce((acc, indicator) => {

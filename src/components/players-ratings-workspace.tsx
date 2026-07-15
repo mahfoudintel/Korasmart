@@ -3,13 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import { Card, SectionTitle } from "@/components/ui/card";
-import { calculateQuantitativeScore, emptyRatingValues, normalizeRatingValues, ratingIndicators, type RatingValues } from "@/lib/ratings";
+import { calculateQuantitativeScore, emptyRatingValues, normalizeRatingValues, ratingIndicators, ratingsStorageKey, type PeerRatings, type RatingValues } from "@/lib/ratings";
 import { useMembers } from "@/hooks/use-members";
 import { useRole } from "@/hooks/use-role";
 import { canManageMembers, canManageRoles } from "@/lib/access";
 
-type PeerRatings = Record<string, Record<string, RatingValues>>;
-const ratingsStorageKey = "korasmart-peer-ratings-v1";
 const anonymousRaterKey = "korasmart-anonymous-rater-id";
 const clampRating = (value: number) => Math.min(Math.max(value, 0), 10);
 const formatRating = (value: number) => Number(value.toFixed(2));

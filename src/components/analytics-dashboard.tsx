@@ -6,24 +6,10 @@ import { ArrowRight, BarChart3, ShieldCheck, Target, Trophy, Users } from "lucid
 import { Card, SectionTitle } from "@/components/ui/card";
 import { NextMatchAttendance } from "@/components/next-match-attendance";
 import { NextReservationTopCard, UpcomingReservationsCard } from "@/components/reservation-dashboard-widgets";
-import { players } from "@/lib/data";
-import { calculateQuantitativeScore, ratingIndicators, type RatingValues } from "@/lib/ratings";
+import { ratingIndicators, ratingsStorageKey, type PeerRatings } from "@/lib/ratings";
 import { useReservations } from "@/hooks/use-reservations";
-import { formatReservationDate } from "@/lib/reservations";
-
-type PeerRatings = Record<string, Record<string, RatingValues>>;
-type MatchStats = {
-  reservationId: string;
-  fluorescentScore: number;
-  orangeScore: number;
-  winner: "fluorescent" | "orange" | "draw";
-  mvp: string;
-  notes: string;
-  scorers: Record<string, number>;
-};
-
-const ratingsStorageKey = "korasmart-peer-ratings-v1";
-const matchStatsStorageKey = "korasmart-match-stats-v1";
+import { useMembers } from "@/hooks/use-members";
+import { derivePlayerPerformance, getRecordedReservations, getTopScorers } from "@/lib/player-performance";
 
 function StatCard({ icon: Icon, label, value, meta }: { icon: typeof BarChart3; label: string; value: string; meta: string }) {
   return (
@@ -44,44 +30,29 @@ function StatCard({ icon: Icon, label, value, meta }: { icon: typeof BarChart3; 
 
 export function AnalyticsDashboard() {
   const { reservations } = useReservations();
+  const { members } = useMembers();
   const [ratings, setRatings] = useState<PeerRatings>({});
-  const [matchStats, setMatchStats] = useState<MatchStats | null>(null);
 
   useEffect(() => {
     const savedRatings = window.localStorage.getItem(ratingsStorageKey);
-    const savedStats = window.localStorage.getItem(matchStatsStorageKey);
 
     if (savedRatings) setRatings(JSON.parse(savedRatings) as PeerRatings);
-    if (savedStats) setMatchStats(JSON.parse(savedStats) as MatchStats);
   }, []);
 
   const playerScores = useMemo(
-    () =>
-      players
-        .map((player) => {
-          const receivedRatings = Object.values(ratings)
-            .map((raterRatings) => raterRatings[player.name])
-            .filter(Boolean);
-
-          return {
-            player: player.name,
-            score: calculateQuantitativeScore(receivedRatings),
-            submissions: receivedRatings.length
-          };
-        })
-        .sort((a, b) => (b.score ?? -1) - (a.score ?? -1)),
-    [ratings]
+    () => derivePlayerPerformance(members, reservations, ratings).sort((a, b) => b.balanceScore - a.balanceScore),
+    [members, ratings, reservations]
   );
 
-  const totalPossibleRatings = players.length * (players.length - 1);
+  const totalPossibleRatings = members.length * (members.length - 1);
   const submittedRatings = Object.values(ratings).reduce((sum, raterRatings) => sum + Object.keys(raterRatings).length, 0);
   const ratingsPercent = totalPossibleRatings ? Math.round((submittedRatings / totalPossibleRatings) * 100) : 0;
-  const ratedPlayers = playerScores.filter((item) => item.score !== null).length;
-  const selectedReservation = reservations.find((reservation) => reservation.id === matchStats?.reservationId);
-  const totalGoals = matchStats
-    ? Object.values(matchStats.scorers || {}).reduce((sum, goals) => sum + Number(goals || 0), 0)
-    : 0;
-  const hasOfficialStats = Boolean(matchStats && (matchStats.fluorescentScore > 0 || matchStats.orangeScore > 0 || totalGoals > 0));
+  const ratedPlayers = playerScores.filter((item) => item.ratingScore !== null).length;
+  const recordedReservations = getRecordedReservations(reservations);
+  const totalGoals = playerScores.reduce((sum, player) => sum + player.goals, 0);
+  const topScorers = getTopScorers(playerScores);
+  const hasOfficialStats = recordedReservations.length > 0;
+  const bestRated = playerScores.find((player) => player.ratingScore !== null);
 
   return (
     <div className="space-y-6">
@@ -93,8 +64,8 @@ export function AnalyticsDashboard() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <NextReservationTopCard />
         <StatCard icon={ShieldCheck} label="Ratings progress" value={`${ratingsPercent}%`} meta={`${submittedRatings}/${totalPossibleRatings} peer scores`} />
-        <StatCard icon={Users} label="Rated players" value={`${ratedPlayers}/${players.length}`} meta="Quantitative scores ready" />
-        <StatCard icon={Trophy} label="Official games" value={hasOfficialStats ? "1" : "0"} meta="Recorded match stat sheets" />
+        <StatCard icon={Users} label="Rated players" value={`${ratedPlayers}/${members.length}`} meta="Quantitative scores ready" />
+        <StatCard icon={Trophy} label="Official games" value={`${recordedReservations.length}`} meta={`${totalGoals} recorded goals`} />
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -110,9 +81,9 @@ export function AnalyticsDashboard() {
                 <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-sm font-black text-black">{item.player[0]}</span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-black">{item.player}</p>
-                  <p className="text-xs text-white/55">{item.submissions} player ratings</p>
+                  <p className="text-xs text-white/55">{item.ratingSubmissions} ratings · {item.goals} goals · {item.appearances} games</p>
                 </div>
-                <span className="text-2xl font-black text-lime-300">{item.score ?? "-"}</span>
+                <span className="text-2xl font-black text-lime-300">{item.balanceScore}</span>
               </div>
             ))}
           </div>
@@ -138,14 +109,14 @@ export function AnalyticsDashboard() {
           {hasOfficialStats ? (
             <div className="mt-5 grid gap-4 md:grid-cols-[180px_1fr]">
               <div className="rounded-2xl bg-white/[.06] p-4 text-center">
-                <p className="text-sm text-white/60">{selectedReservation ? formatReservationDate(selectedReservation.date) : "Recorded game"}</p>
-                <p className="mt-2 text-5xl font-black text-white">{matchStats?.fluorescentScore} - {matchStats?.orangeScore}</p>
-                <p className="mt-2 text-sm text-lime-300">{matchStats?.winner === "draw" ? "Draw" : `${matchStats?.winner} won`}</p>
+                <p className="text-sm text-white/60">Recorded games</p>
+                <p className="mt-2 text-5xl font-black text-white">{recordedReservations.length}</p>
+                <p className="mt-2 text-sm text-lime-300">{totalGoals} total goals</p>
               </div>
               <div className="space-y-3">
-                <p className="rounded-2xl bg-white/[.06] p-4"><span className="text-white/55">MVP</span><b className="ml-3 text-lime-300">{matchStats?.mvp}</b></p>
-                <p className="rounded-2xl bg-white/[.06] p-4"><span className="text-white/55">Total goals</span><b className="ml-3 text-white">{totalGoals}</b></p>
-                <p className="rounded-2xl bg-white/[.06] p-4 text-white/70">{matchStats?.notes || "No notes entered."}</p>
+                <p className="rounded-2xl bg-white/[.06] p-4"><span className="text-white/55">Top scorer</span><b className="ml-3 text-lime-300">{topScorers.length ? topScorers.map((player) => `${player.player} ${player.goals}`).join(", ") : "Not recorded"}</b></p>
+                <p className="rounded-2xl bg-white/[.06] p-4"><span className="text-white/55">Best rating</span><b className="ml-3 text-white">{bestRated ? `${bestRated.player} ${bestRated.ratingScore}` : "Pending"}</b></p>
+                <p className="rounded-2xl bg-white/[.06] p-4 text-white/70">Match reports now accumulate here and feed fair team balancing.</p>
               </div>
             </div>
           ) : (
