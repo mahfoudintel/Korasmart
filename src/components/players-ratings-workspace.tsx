@@ -196,7 +196,7 @@ export function PlayersRatingsWorkspace() {
         </div>
       </Card>
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_.9fr]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_400px]">
         <Card>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
@@ -232,7 +232,7 @@ export function PlayersRatingsWorkspace() {
             </div>
           </div>
 
-          <div className="mt-5 grid gap-4 lg:grid-cols-[290px_1fr]">
+          <div className="mt-5 grid gap-4 lg:grid-cols-[240px_1fr] 2xl:grid-cols-[260px_1fr]">
             <div className="rounded-[20px] border border-white/60 bg-white/46 p-3">
               <div className="flex items-center justify-between gap-2 px-1">
                 <p className="text-xs font-black uppercase tracking-[.12em] text-slate-500">{t("Players to rate")}</p>
@@ -269,7 +269,7 @@ export function PlayersRatingsWorkspace() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="text-xs font-black uppercase tracking-[.12em] text-slate-500">{t("Now rating")}</p>
-                    <h3 className="mt-1 truncate text-3xl font-black tracking-normal text-slate-950">{target}</h3>
+                    <h3 className="mt-1 truncate text-2xl font-black tracking-normal text-slate-950">{target}</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button onClick={() => moveTarget(-1)} className="grid h-11 w-11 place-items-center rounded-2xl border border-white/70 bg-white/70 text-slate-700">
@@ -297,14 +297,14 @@ export function PlayersRatingsWorkspace() {
                   </p>
                 )}
 
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                <div className="mt-5 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
                   {ratingIndicators.map((indicator) => (
-                    <label key={indicator.key} className="rounded-2xl border border-white/65 bg-white/58 p-4">
-                      <div className="mb-3 flex justify-between gap-3 text-sm font-black text-slate-800">
+                    <label key={indicator.key} className="rounded-2xl border border-white/65 bg-white/58 p-3">
+                      <div className="mb-2 flex justify-between gap-3 text-sm font-black text-slate-800">
                         <span>{t(indicator.label)}</span>
                         <span className="text-[#247e24]">{Number((draft[indicator.key] ?? 0).toFixed(1))}/10</span>
                       </div>
-                      <p className="mb-3 min-h-10 text-xs font-semibold leading-5 text-slate-500">{t(indicator.helper)}</p>
+                      <p className="mb-3 min-h-8 text-xs font-semibold leading-4 text-slate-500">{t(indicator.helper)}</p>
                       <input
                         type="range"
                         min="0"
@@ -315,11 +315,11 @@ export function PlayersRatingsWorkspace() {
                         disabled={Boolean(existingRating)}
                         className="w-full accent-[#35b43a]"
                       />
-                      <div className="mt-3 grid grid-cols-4 gap-1 text-center text-[10px] font-black uppercase tracking-[.06em] text-slate-400">
-                        <span>1-3</span>
-                        <span>4-6</span>
-                        <span>7-8</span>
-                        <span>9-10</span>
+                      <div className="mt-2 grid grid-cols-4 gap-1 text-center text-[10px] font-black uppercase tracking-[.04em] text-slate-400">
+                        <span>Weak</span>
+                        <span>Ok</span>
+                        <span>Good</span>
+                        <span>Top</span>
                       </div>
                     </label>
                   ))}
@@ -358,17 +358,17 @@ export function PlayersRatingsWorkspace() {
               {unratedPlayers.length} {t("left")}
             </span>
           </div>
-          <div className="mt-5 space-y-3">
+          <div className="mt-4 max-h-[680px] space-y-2 overflow-y-auto pr-1">
             {playerScores.map((item) => (
-              <div key={item.player} className="flex items-center gap-3 rounded-2xl border border-white/60 bg-white/56 p-3">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-sm font-black text-black">{item.player[0]}</span>
-                <span className="flex-1 font-black text-slate-950">{item.player}</span>
-                <span className="text-sm font-bold text-slate-500">{item.submissions} {t("votes")}</span>
-                <span className="min-w-14 text-right text-2xl font-black text-[#247e24]">{item.score ?? "-"}</span>
+              <div key={item.player} className="flex items-center gap-2 rounded-2xl border border-white/60 bg-white/56 px-3 py-2.5">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white text-xs font-black text-black">{item.player[0]}</span>
+                <span className="min-w-0 flex-1 truncate text-sm font-black text-slate-950">{item.player}</span>
+                <span className="whitespace-nowrap text-xs font-bold text-slate-500">{item.submissions} {t("votes")}</span>
+                <span className="min-w-10 text-right text-lg font-black text-[#247e24]">{item.score ?? "-"}</span>
                 {canResetRatings && (
                   <button
                     onClick={() => resetRatingsForPlayer(item.player)}
-                    className="grid h-9 w-9 place-items-center rounded-full border border-orange-200 bg-orange-50 text-orange-700 transition hover:bg-orange-100"
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-orange-200 bg-orange-50 text-orange-700 transition hover:bg-orange-100"
                     title={`Reset ratings for ${item.player}`}
                   >
                     <RotateCcw className="h-4 w-4" />
