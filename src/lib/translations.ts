@@ -191,6 +191,29 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
     ar: "المزيد من التقييمات سيحسن توازن الفرق."
   },
   rated: { fr: "notes", ar: "مقيمون" },
+  Attack: { fr: "Attaque", ar: "الهجوم" },
+  Fitness: { fr: "Physique", ar: "اللياقة" },
+  "Team Play": { fr: "Jeu collectif", ar: "اللعب الجماعي" },
+  "Shooting, finishing, goal threat": {
+    fr: "Tir, finition, danger devant le but",
+    ar: "التسديد، الانهاء، الخطورة على المرمى"
+  },
+  "Control, dribbling, passing quality": {
+    fr: "Controle, dribble, qualite de passe",
+    ar: "التحكم، المراوغة، جودة التمرير"
+  },
+  "Speed, stamina, intensity": {
+    fr: "Vitesse, endurance, intensite",
+    ar: "السرعة، التحمل، الحدة"
+  },
+  "Positioning, defending, decisions": {
+    fr: "Placement, defense, decisions",
+    ar: "التمركز، الدفاع، القرارات"
+  },
+  "Quick rating: about 30 seconds": {
+    fr: "Evaluation rapide : environ 30 secondes",
+    ar: "تقييم سريع: حوالي 30 ثانية"
+  },
   "View on match": { fr: "Voir le match", ar: "عرض المباراة" },
   "Team A": { fr: "Equipe A", ar: "الفريق أ" },
   "Team B": { fr: "Equipe B", ar: "الفريق ب" },

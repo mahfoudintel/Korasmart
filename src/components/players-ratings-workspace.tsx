@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 const anonymousRaterKey = "korasmart-anonymous-rater-id";
 const clampRating = (value: number) => Math.min(Math.max(value, 0), 10);
-const formatRating = (value: number) => Number(value.toFixed(2));
+const formatRating = (value: number) => Number((Math.round(value * 2) / 2).toFixed(1));
 
 export function PlayersRatingsWorkspace() {
   const { members, defaultCount, addedCount, removedCount, addMember, removeMember } = useMembers();
@@ -227,6 +227,7 @@ export function PlayersRatingsWorkspace() {
                 <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">
                   {t("Nobody sees who gave which rating. Superuser can only reset a player when needed.")}
                 </p>
+                <p className="mt-2 text-xs font-black uppercase tracking-[.12em] text-[#247e24]">{t("Quick rating: about 30 seconds")}</p>
               </div>
             </div>
           </div>
@@ -301,29 +302,25 @@ export function PlayersRatingsWorkspace() {
                     <label key={indicator.key} className="rounded-2xl border border-white/65 bg-white/58 p-4">
                       <div className="mb-3 flex justify-between gap-3 text-sm font-black text-slate-800">
                         <span>{t(indicator.label)}</span>
-                        <span className="text-[#247e24]">{Number((draft[indicator.key] ?? 0).toFixed(2))}/10</span>
+                        <span className="text-[#247e24]">{Number((draft[indicator.key] ?? 0).toFixed(1))}/10</span>
                       </div>
+                      <p className="mb-3 min-h-10 text-xs font-semibold leading-5 text-slate-500">{t(indicator.helper)}</p>
                       <input
                         type="range"
                         min="0"
                         max="10"
-                        step="0.01"
+                        step="0.5"
                         value={draft[indicator.key]}
                         onChange={(event) => updateDraftRating(indicator.key, Number(event.target.value))}
                         disabled={Boolean(existingRating)}
                         className="w-full accent-[#35b43a]"
                       />
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        min="0"
-                        max="10"
-                        step="0.01"
-                        value={draft[indicator.key]}
-                        onChange={(event) => updateDraftRating(indicator.key, Number(event.target.value))}
-                        disabled={Boolean(existingRating)}
-                        className="mt-3 h-11 w-full rounded-2xl border border-white/70 bg-white/75 px-3 text-right font-black text-slate-950 outline-none focus:border-lime-400 disabled:opacity-70"
-                      />
+                      <div className="mt-3 grid grid-cols-4 gap-1 text-center text-[10px] font-black uppercase tracking-[.06em] text-slate-400">
+                        <span>1-3</span>
+                        <span>4-6</span>
+                        <span>7-8</span>
+                        <span>9-10</span>
+                      </div>
                     </label>
                   ))}
                 </div>

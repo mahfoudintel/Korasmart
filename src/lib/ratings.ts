@@ -1,10 +1,8 @@
 export const ratingIndicators = [
-  { key: "speed", label: "Speed" },
-  { key: "shooting", label: "Shooting" },
-  { key: "passingAccuracy", label: "Passing accuracy" },
-  { key: "dribbling", label: "Dribbling" },
-  { key: "ballControl", label: "Ball control" },
-  { key: "stamina", label: "Stamina" }
+  { key: "attack", label: "Attack", helper: "Shooting, finishing, goal threat" },
+  { key: "technique", label: "Technique", helper: "Control, dribbling, passing quality" },
+  { key: "fitness", label: "Fitness", helper: "Speed, stamina, intensity" },
+  { key: "teamPlay", label: "Team Play", helper: "Positioning, defending, decisions" }
 ] as const;
 
 export type RatingIndicator = (typeof ratingIndicators)[number]["key"];
@@ -19,9 +17,55 @@ export const emptyRatingValues = ratingIndicators.reduce((acc, indicator) => {
 }, {} as RatingValues);
 
 export function normalizeRatingValues(rating?: Partial<RatingValues>): RatingValues {
+  const legacyRating = rating as Partial<RatingValues> & {
+    speed?: number;
+    shooting?: number;
+    passingAccuracy?: number;
+    dribbling?: number;
+    ballControl?: number;
+    stamina?: number;
+  } | undefined;
+
   return ratingIndicators.reduce((acc, indicator) => {
     const value = rating?.[indicator.key];
-    acc[indicator.key] = typeof value === "number" ? value : defaultRatingValue;
+    if (typeof value === "number") {
+      acc[indicator.key] = value;
+      return acc;
+    }
+
+    if (legacyRating) {
+      if (indicator.key === "attack" && typeof legacyRating.shooting === "number") {
+        acc[indicator.key] = legacyRating.shooting;
+        return acc;
+      }
+
+      if (indicator.key === "technique") {
+        const values = [legacyRating.passingAccuracy, legacyRating.dribbling, legacyRating.ballControl].filter(
+          (legacyValue): legacyValue is number => typeof legacyValue === "number"
+        );
+        if (values.length) {
+          acc[indicator.key] = Number((values.reduce((sum, legacyValue) => sum + legacyValue, 0) / values.length).toFixed(2));
+          return acc;
+        }
+      }
+
+      if (indicator.key === "fitness") {
+        const values = [legacyRating.speed, legacyRating.stamina].filter(
+          (legacyValue): legacyValue is number => typeof legacyValue === "number"
+        );
+        if (values.length) {
+          acc[indicator.key] = Number((values.reduce((sum, legacyValue) => sum + legacyValue, 0) / values.length).toFixed(2));
+          return acc;
+        }
+      }
+
+      if (indicator.key === "teamPlay" && typeof legacyRating.passingAccuracy === "number") {
+        acc[indicator.key] = legacyRating.passingAccuracy;
+        return acc;
+      }
+    }
+
+    acc[indicator.key] = defaultRatingValue;
     return acc;
   }, {} as RatingValues);
 }
