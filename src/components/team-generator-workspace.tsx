@@ -63,6 +63,10 @@ export function TeamGeneratorWorkspace() {
   const selectedNames = confirmedNames.length >= 2 ? confirmedNames : members.slice(0, 10).map((member) => member.name);
   const [teamA, teamB] = useMemo(() => balanceTeams(performance, selectedNames), [performance, selectedNames]);
   const difference = Math.abs(teamA.total - teamB.total);
+  const selectedPerformance = performance.filter((player) => selectedNames.includes(player.player));
+  const ratedSelectedCount = selectedPerformance.filter((player) => player.ratingScore !== null).length;
+  const readinessPercent = selectedNames.length ? Math.round((ratedSelectedCount / selectedNames.length) * 100) : 0;
+  const readyForBalance = readinessPercent >= 70 || selectedNames.length <= 2;
 
   return (
     <div className="space-y-5">
@@ -93,6 +97,26 @@ export function TeamGeneratorWorkspace() {
           </div>
         </div>
       </section>
+
+      <Card>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <SectionTitle>{t("Team readiness")}</SectionTitle>
+            <p className="mt-2 text-sm font-semibold text-slate-600">
+              {readyForBalance ? t("Enough ratings for a useful team balance.") : t("More ratings will improve team balance.")}
+            </p>
+          </div>
+          <div className="w-full sm:w-72">
+            <div className="flex items-center justify-between text-sm font-black text-slate-700">
+              <span>{ratedSelectedCount}/{selectedNames.length} {t("rated")}</span>
+              <span className={readyForBalance ? "text-[#247e24]" : "text-amber-700"}>{readinessPercent}%</span>
+            </div>
+            <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/70">
+              <div className={readyForBalance ? "h-full rounded-full bg-[#35b43a]" : "h-full rounded-full bg-amber-400"} style={{ width: `${readinessPercent}%` }} />
+            </div>
+          </div>
+        </div>
+      </Card>
 
       <div className="grid gap-5 lg:grid-cols-2">
         <TeamCard name={t("Team A")} tone="lime" players={teamA.players} total={teamA.total} />

@@ -167,6 +167,30 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
     fr: "Les equipes utilisent d'abord la presence, puis les notes anonymes, buts, matchs joues, victoires et ecart de score.",
     ar: "تستخدم الفرق الحضور اولا، ثم التقييمات المجهولة، الاهداف، المشاركات، الانتصارات وفارق النتيجة."
   },
+  "Rate each player once. Only anonymous averages feed team balancing.": {
+    fr: "Note chaque joueur une seule fois. Seules les moyennes anonymes servent a equilibrer les equipes.",
+    ar: "قيّم كل لاعب مرة واحدة. المتوسطات المجهولة فقط تستخدم لتوازن الفرق."
+  },
+  "Your progress": { fr: "Votre progression", ar: "تقدمك" },
+  completed: { fr: "termine", ar: "مكتمل" },
+  "Anonymous and one-time": { fr: "Anonyme et unique", ar: "مجهول ولمرة واحدة" },
+  "Nobody sees who gave which rating. Superuser can only reset a player when needed.": {
+    fr: "Personne ne voit qui a donne quelle note. Le superutilisateur peut seulement reinitialiser un joueur si necessaire.",
+    ar: "لا احد يرى من اعطى اي تقييم. يمكن للمستخدم الفائق فقط اعادة ضبط لاعب عند الحاجة."
+  },
+  "Players to rate": { fr: "Joueurs a noter", ar: "لاعبون للتقييم" },
+  "Now rating": { fr: "Note en cours", ar: "التقييم الحالي" },
+  left: { fr: "restants", ar: "متبقون" },
+  "Team readiness": { fr: "Preparation des equipes", ar: "جاهزية الفرق" },
+  "Enough ratings for a useful team balance.": {
+    fr: "Assez de notes pour un equilibrage utile.",
+    ar: "هناك تقييمات كافية لتوازن مفيد."
+  },
+  "More ratings will improve team balance.": {
+    fr: "Plus de notes amelioreront l'equilibrage.",
+    ar: "المزيد من التقييمات سيحسن توازن الفرق."
+  },
+  rated: { fr: "notes", ar: "مقيمون" },
   "View on match": { fr: "Voir le match", ar: "عرض المباراة" },
   "Team A": { fr: "Equipe A", ar: "الفريق أ" },
   "Team B": { fr: "Equipe B", ar: "الفريق ب" },
