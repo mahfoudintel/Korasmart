@@ -12,10 +12,12 @@ import {
   Plus,
   Save,
   ShieldCheck,
+  Upload,
   UsersRound,
   X
 } from "lucide-react";
 import { Card, SectionTitle } from "@/components/ui/card";
+import { ReservationImportModal } from "@/components/reservation-import-modal";
 import { ReservationMapLink } from "@/components/reservation-map-link";
 import { useAttendance, playingLimit } from "@/hooks/use-attendance";
 import { useReservations } from "@/hooks/use-reservations";
@@ -381,6 +383,7 @@ export function MatchesDashboard() {
   const canEdit = canEditBookings(role);
   const { reservations } = useReservations();
   const [modalOpen, setModalOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const t = (text: string) => translateText(text, language);
 
   const sorted = useMemo(() => [...reservations].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`)), [reservations]);
@@ -402,10 +405,16 @@ export function MatchesDashboard() {
             <ExternalLink className="h-4 w-4" />
           </a>
           {canEdit && (
-            <button onClick={() => setModalOpen(true)} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-lime-300 px-4 font-black text-slate-950">
-              <Plus className="h-4 w-4" />
-              {t("New Match")}
-            </button>
+            <>
+              <button onClick={() => setImportOpen(true)} className="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/60 bg-white/72 px-4 font-black text-slate-950 shadow-sm">
+                <Upload className="h-4 w-4" />
+                {t("Import reservations")}
+              </button>
+              <button onClick={() => setModalOpen(true)} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-lime-300 px-4 font-black text-slate-950">
+                <Plus className="h-4 w-4" />
+                {t("New Match")}
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -457,6 +466,7 @@ export function MatchesDashboard() {
       )}
 
       {modalOpen && <NewMatchModal onClose={() => setModalOpen(false)} />}
+      {importOpen && <ReservationImportModal onClose={() => setImportOpen(false)} />}
     </div>
   );
 }

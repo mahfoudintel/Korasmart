@@ -152,6 +152,40 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   },
   "Match saved.": { fr: "Match enregistre.", ar: "تم حفظ المباراة." },
   "Booking could not be saved.": { fr: "Le booking n'a pas pu etre enregistre.", ar: "تعذر حفظ الحجز." },
+  "Import reservations": { fr: "Importer reservations", ar: "استيراد الحجوزات" },
+  "Upload reservation screenshot": { fr: "Importer capture reservation", ar: "رفع صورة الحجوزات" },
+  "Choose screenshot": { fr: "Choisir une capture", ar: "اختر الصورة" },
+  "The image stays in this browser for review.": {
+    fr: "L'image reste dans ce navigateur pour verification.",
+    ar: "تبقى الصورة في هذا المتصفح للمراجعة."
+  },
+  "Screenshot reference": { fr: "Reference capture", ar: "مرجع الصورة" },
+  "Upload the Rabat Animation screenshot, then paste the reservation text or add rows manually.": {
+    fr: "Importe la capture Rabat Animation, puis colle le texte des reservations ou ajoute les lignes manuellement.",
+    ar: "ارفع صورة Rabat Animation، ثم الصق نص الحجوزات أو أضف الصفوف يدويا."
+  },
+  "Paste reservation text": { fr: "Coller texte reservation", ar: "الصق نص الحجوزات" },
+  "Parse reservations": { fr: "Lire les reservations", ar: "قراءة الحجوزات" },
+  "Review before saving": { fr: "Verifier avant sauvegarde", ar: "راجع قبل الحفظ" },
+  "Review before saving.": { fr: "Verifiez avant sauvegarde.", ar: "راجع قبل الحفظ." },
+  "Add row": { fr: "Ajouter ligne", ar: "إضافة صف" },
+  "rows found": { fr: "lignes trouvees", ar: "صفوف موجودة" },
+  "No rows parsed yet. Paste reservation text or add a row manually.": {
+    fr: "Aucune ligne lue. Collez le texte reservation ou ajoutez une ligne manuellement.",
+    ar: "لم يتم قراءة أي صف. الصق نص الحجوزات أو أضف صفا يدويا."
+  },
+  "Image selected. Paste text or add rows, then review before saving.": {
+    fr: "Image selectionnee. Collez le texte ou ajoutez des lignes, puis verifiez avant sauvegarde.",
+    ar: "تم اختيار الصورة. الصق النص أو أضف الصفوف، ثم راجع قبل الحفظ."
+  },
+  Price: { fr: "Prix", ar: "السعر" },
+  Save: { fr: "Enregistrer", ar: "حفظ" },
+  "Save bookings": { fr: "Enregistrer bookings", ar: "حفظ الحجوزات" },
+  "Booking import saved.": { fr: "Import reservations enregistre.", ar: "تم حفظ استيراد الحجوزات." },
+  "Some bookings could not be saved.": {
+    fr: "Certains bookings n'ont pas pu etre enregistres.",
+    ar: "تعذر حفظ بعض الحجوزات."
+  },
   "Match not found": { fr: "Match introuvable", ar: "المباراة غير موجودة" },
   "Back to Matches": { fr: "Retour aux matchs", ar: "العودة الى المباريات" },
   "Final Score": { fr: "Score final", ar: "النتيجة النهائية" },
