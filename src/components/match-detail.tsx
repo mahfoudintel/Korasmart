@@ -10,7 +10,6 @@ import { useMembers } from "@/hooks/use-members";
 import { useReservations } from "@/hooks/use-reservations";
 import { useRole } from "@/hooks/use-role";
 import { useLanguage } from "@/components/language-provider";
-import { canEditBookings } from "@/lib/access";
 import { formatReservationDate, type MatchReport, type Reservation } from "@/lib/reservations";
 import { translateText } from "@/lib/translations";
 import { cn } from "@/lib/utils";
@@ -45,11 +44,15 @@ function topScorers(report?: MatchReport) {
 function MatchReportEditor({
   reservation,
   playerNames,
+  mode,
+  title,
   onCancel,
   onSaved
 }: {
   reservation: Reservation;
   playerNames: string[];
+  mode: "teams" | "stats";
+  title: string;
   onCancel: () => void;
   onSaved: (message: string, isError?: boolean) => void;
 }) {
@@ -109,68 +112,77 @@ function MatchReportEditor({
   return (
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SectionTitle>{t("Edit stats")}</SectionTitle>
+        <SectionTitle>{title}</SectionTitle>
         <button onClick={onCancel} className="inline-flex h-10 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 font-black text-slate-700">
           <X className="h-4 w-4" />
           {t("Cancel")}
         </button>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-3">
-        <label className="text-sm font-bold text-slate-600">
-          {t("Team A score")}
-          <input type="number" min={0} value={draft.fluorescentScore} onChange={(event) => setDraft((current) => ({ ...current, fluorescentScore: Number(event.target.value) }))} className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/80 px-4 text-center text-xl font-black text-slate-950 outline-none focus:border-lime-400" />
-        </label>
-        <label className="text-sm font-bold text-slate-600">
-          {t("Team B score")}
-          <input type="number" min={0} value={draft.orangeScore} onChange={(event) => setDraft((current) => ({ ...current, orangeScore: Number(event.target.value) }))} className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/80 px-4 text-center text-xl font-black text-slate-950 outline-none focus:border-lime-400" />
-        </label>
-        <label className="text-sm font-bold text-slate-600">
-          {t("Winner")}
-          <select value={draft.winner} onChange={(event) => setDraft((current) => ({ ...current, winner: event.target.value as MatchReport["winner"] }))} className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/80 px-4 font-black text-slate-950 outline-none focus:border-lime-400">
-            <option value="draw">{t("Draw")}</option>
-            <option value="fluorescent">{t("Team A")}</option>
-            <option value="orange">{t("Team B")}</option>
-          </select>
-        </label>
-      </div>
+      {mode === "stats" && (
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <label className="text-sm font-bold text-slate-600">
+            {t("Team A score")}
+            <input type="number" min={0} value={draft.fluorescentScore} onChange={(event) => setDraft((current) => ({ ...current, fluorescentScore: Number(event.target.value) }))} className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/80 px-4 text-center text-xl font-black text-slate-950 outline-none focus:border-lime-400" />
+          </label>
+          <label className="text-sm font-bold text-slate-600">
+            {t("Team B score")}
+            <input type="number" min={0} value={draft.orangeScore} onChange={(event) => setDraft((current) => ({ ...current, orangeScore: Number(event.target.value) }))} className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/80 px-4 text-center text-xl font-black text-slate-950 outline-none focus:border-lime-400" />
+          </label>
+          <label className="text-sm font-bold text-slate-600">
+            {t("Winner")}
+            <select value={draft.winner} onChange={(event) => setDraft((current) => ({ ...current, winner: event.target.value as MatchReport["winner"] }))} className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/80 px-4 font-black text-slate-950 outline-none focus:border-lime-400">
+              <option value="draw">{t("Draw")}</option>
+              <option value="fluorescent">{t("Team A")}</option>
+              <option value="orange">{t("Team B")}</option>
+            </select>
+          </label>
+        </div>
+      )}
 
       <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,.65fr)]">
         <div>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <SectionTitle>{t("Players and scorers")}</SectionTitle>
-            <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-slate-600">{totalGoals} {t("goals")}</span>
+            <SectionTitle>{mode === "teams" ? t("Players and teams") : t("Players and scorers")}</SectionTitle>
+            {mode === "stats" && <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-black text-slate-600">{totalGoals} {t("goals")}</span>}
           </div>
           <div className="mt-3 grid gap-2">
             {playerNames.map((player) => (
-              <div key={player} className="grid gap-2 rounded-2xl border border-white/70 bg-white/68 p-2 sm:grid-cols-[minmax(0,1fr)_150px_88px] sm:items-center">
+              <div key={player} className={cn("grid gap-2 rounded-2xl border border-white/70 bg-white/68 p-2 sm:items-center", mode === "teams" ? "sm:grid-cols-[minmax(0,1fr)_150px]" : "sm:grid-cols-[minmax(0,1fr)_88px]")}>
                 <p className="truncate font-black text-slate-800">{player}</p>
-                <select value={playerTeam(player)} onChange={(event) => updatePlayerTeam(player, event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-slate-800">
-                  <option value="">{t("No team")}</option>
-                  <option value="fluorescent">{t("Team A")}</option>
-                  <option value="orange">{t("Team B")}</option>
-                </select>
-                <input aria-label={`${player} ${t("Scorers")}`} type="number" min={0} value={draft.scorers[player] || 0} onChange={(event) => updateScorer(player, Number(event.target.value))} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-center font-black text-[#247e24]" />
+                {mode === "teams" ? (
+                  <select value={playerTeam(player)} onChange={(event) => updatePlayerTeam(player, event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-slate-800">
+                    <option value="">{t("No team")}</option>
+                    <option value="fluorescent">{t("Team A")}</option>
+                    <option value="orange">{t("Team B")}</option>
+                  </select>
+                ) : (
+                  <input aria-label={`${player} ${t("Scorers")}`} type="number" min={0} value={draft.scorers[player] || 0} onChange={(event) => updateScorer(player, Number(event.target.value))} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-center font-black text-[#247e24]" />
+                )}
               </div>
             ))}
           </div>
         </div>
 
         <div className="space-y-4">
-          <label className="block text-sm font-bold text-slate-600">
-            {t("MVP")}
-            <select value={draft.mvp || ""} onChange={(event) => setDraft((current) => ({ ...current, mvp: event.target.value }))} className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/80 px-4 font-black text-slate-950 outline-none focus:border-lime-400">
-              <option value="">{t("Not recorded")}</option>
-              {playerNames.map((player) => <option key={player} value={player}>{player}</option>)}
-            </select>
-          </label>
-          <label className="block text-sm font-bold text-slate-600">
-            {t("Notes")}
-            <textarea value={draft.notes} onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} className="mt-2 min-h-32 w-full rounded-2xl border border-white/70 bg-white/80 p-4 font-bold text-slate-950 outline-none focus:border-lime-400" />
-          </label>
+          {mode === "stats" && (
+            <>
+              <label className="block text-sm font-bold text-slate-600">
+                {t("MVP")}
+                <select value={draft.mvp || ""} onChange={(event) => setDraft((current) => ({ ...current, mvp: event.target.value }))} className="mt-2 h-12 w-full rounded-2xl border border-white/70 bg-white/80 px-4 font-black text-slate-950 outline-none focus:border-lime-400">
+                  <option value="">{t("Not recorded")}</option>
+                  {playerNames.map((player) => <option key={player} value={player}>{player}</option>)}
+                </select>
+              </label>
+              <label className="block text-sm font-bold text-slate-600">
+                {t("Notes")}
+                <textarea value={draft.notes} onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} className="mt-2 min-h-32 w-full rounded-2xl border border-white/70 bg-white/80 p-4 font-bold text-slate-950 outline-none focus:border-lime-400" />
+              </label>
+            </>
+          )}
           <button onClick={saveReport} disabled={saveStatus === "saving"} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#35b43a] px-5 font-black text-white disabled:opacity-60">
             <Save className="h-5 w-5" />
-            {saveStatus === "saving" ? t("Saving...") : t("Save stats")}
+            {saveStatus === "saving" ? t("Saving...") : mode === "teams" ? t("Save teams") : t("Save stats")}
           </button>
         </div>
       </div>
@@ -178,13 +190,65 @@ function MatchReportEditor({
   );
 }
 
+function AttendanceEditor({
+  attendance,
+  playerNames,
+  onCancel
+}: {
+  attendance: ReturnType<typeof useAttendance>;
+  playerNames: string[];
+  onCancel: () => void;
+}) {
+  const { language } = useLanguage();
+  const t = (text: string) => translateText(text, language);
+
+  const statusFor = (player: string) => {
+    if (attendance.confirmedPlayers.some((record) => record.player === player)) return "playing";
+    if (attendance.waitingPlayers.some((record) => record.player === player)) return "waiting";
+    return "";
+  };
+
+  const updateStatus = async (player: string, status: string) => {
+    if (status === "playing" || status === "waiting") {
+      await attendance.savePlayerAttendance(player, status);
+      return;
+    }
+    await attendance.removePlayerAttendance(player);
+  };
+
+  return (
+    <Card>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle>{t("Edit attendance")}</SectionTitle>
+        <button onClick={onCancel} className="inline-flex h-10 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 font-black text-slate-700">
+          <X className="h-4 w-4" />
+          {t("Cancel")}
+        </button>
+      </div>
+      <div className="mt-4 grid gap-2 md:grid-cols-2">
+        {playerNames.map((player) => (
+          <label key={player} className="grid gap-2 rounded-2xl border border-white/70 bg-white/68 p-3 sm:grid-cols-[minmax(0,1fr)_160px] sm:items-center">
+            <span className="truncate font-black text-slate-800">{player}</span>
+            <select value={statusFor(player)} onChange={(event) => void updateStatus(player, event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-slate-800">
+              <option value="">{t("No response")}</option>
+              <option value="playing">{t("Confirmed")}</option>
+              <option value="waiting">{t("Waiting")}</option>
+            </select>
+          </label>
+        ))}
+      </div>
+      <p className="mt-4 rounded-2xl bg-lime-50 p-3 text-sm font-black text-[#247e24]">{t("Attendance updates save immediately.")}</p>
+    </Card>
+  );
+}
+
 export function MatchDetail({ matchId }: { matchId: string }) {
   const { language } = useLanguage();
   const { role } = useRole();
-  const canEdit = canEditBookings(role);
+  const canEdit = role === "superuser" || role === "admin";
   const { members } = useMembers();
   const { reservations } = useReservations();
-  const [editing, setEditing] = useState(false);
+  const [editSection, setEditSection] = useState<"attendance" | "teams" | "stats" | null>(null);
   const [saveMessage, setSaveMessage] = useState<{ text: string; isError?: boolean } | null>(null);
   const t = (text: string) => translateText(text, language);
   const reservation = reservations.find((item) => item.id === matchId);
@@ -220,15 +284,7 @@ export function MatchDetail({ matchId }: { matchId: string }) {
       </Link>
 
       <section className="rounded-[26px] border border-white/25 bg-[#0d2132] p-5 text-white shadow-[0_24px_60px_rgba(2,20,28,.28)]">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <p className="text-xs font-black uppercase tracking-[.18em] text-lime-300">{t("Match Details")}</p>
-          {canEdit && (
-            <button onClick={() => setEditing((current) => !current)} className="inline-flex h-10 items-center gap-2 rounded-2xl bg-white/10 px-4 text-sm font-black text-white transition hover:bg-white/16">
-              {editing ? <X className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
-              {editing ? t("Stop editing") : t("Edit stats")}
-            </button>
-          )}
-        </div>
+        <p className="text-xs font-black uppercase tracking-[.18em] text-lime-300">{t("Match Details")}</p>
         <h1 className="mt-4 text-3xl font-black tracking-normal sm:text-4xl">{formatReservationDate(reservation.date)}</h1>
         <div className="mt-5 grid gap-3 text-base font-black text-white/92 sm:grid-cols-3">
           <span className="inline-flex items-center gap-3">
@@ -261,21 +317,53 @@ export function MatchDetail({ matchId }: { matchId: string }) {
 
       {saveMessage && <p className={cn("rounded-2xl p-3 text-sm font-black", saveMessage.isError ? "bg-orange-50 text-orange-700" : "bg-lime-50 text-[#247e24]")}>{saveMessage.text}</p>}
 
-      {editing && canEdit && (
+      {editSection === "attendance" && canEdit && (
+        <AttendanceEditor
+          attendance={attendance}
+          playerNames={playerNames}
+          onCancel={() => setEditSection(null)}
+        />
+      )}
+
+      {editSection === "teams" && canEdit && (
         <MatchReportEditor
           reservation={reservation}
           playerNames={playerNames}
-          onCancel={() => setEditing(false)}
+          mode="teams"
+          title={t("Edit teams")}
+          onCancel={() => setEditSection(null)}
           onSaved={(message, isError) => {
             setSaveMessage({ text: message, isError });
-            if (!isError) setEditing(false);
+            if (!isError) setEditSection(null);
+          }}
+        />
+      )}
+
+      {editSection === "stats" && canEdit && (
+        <MatchReportEditor
+          reservation={reservation}
+          playerNames={playerNames}
+          mode="stats"
+          title={t("Edit key stats")}
+          onCancel={() => setEditSection(null)}
+          onSaved={(message, isError) => {
+            setSaveMessage({ text: message, isError });
+            if (!isError) setEditSection(null);
           }}
         />
       )}
 
       <div className="grid gap-5 lg:grid-cols-3">
         <Card>
-          <SectionTitle>{t("Attendance")}</SectionTitle>
+          <div className="flex items-center justify-between gap-3">
+            <SectionTitle>{t("Attendance")}</SectionTitle>
+            {canEdit && (
+              <button onClick={() => setEditSection(editSection === "attendance" ? null : "attendance")} className="inline-flex h-9 items-center gap-2 rounded-2xl bg-white/70 px-3 text-xs font-black text-slate-700">
+                <Edit3 className="h-3.5 w-3.5" />
+                {t("Edit")}
+              </button>
+            )}
+          </div>
           <div className="mt-4 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-2xl bg-lime-50 p-3">
               <p className="text-2xl font-black text-[#247e24]">{attendance.summary.playing}</p>
@@ -298,7 +386,15 @@ export function MatchDetail({ matchId }: { matchId: string }) {
         </Card>
 
         <Card>
-          <SectionTitle>{t("Teams")}</SectionTitle>
+          <div className="flex items-center justify-between gap-3">
+            <SectionTitle>{t("Teams")}</SectionTitle>
+            {canEdit && (
+              <button onClick={() => setEditSection(editSection === "teams" ? null : "teams")} className="inline-flex h-9 items-center gap-2 rounded-2xl bg-white/70 px-3 text-xs font-black text-slate-700">
+                <Edit3 className="h-3.5 w-3.5" />
+                {t("Edit")}
+              </button>
+            )}
+          </div>
           {report ? (
             <div className="mt-4 grid gap-4">
               <div>
@@ -316,7 +412,15 @@ export function MatchDetail({ matchId }: { matchId: string }) {
         </Card>
 
         <Card>
-          <SectionTitle>{t("Key Stats")}</SectionTitle>
+          <div className="flex items-center justify-between gap-3">
+            <SectionTitle>{t("Key Stats")}</SectionTitle>
+            {canEdit && (
+              <button onClick={() => setEditSection(editSection === "stats" ? null : "stats")} className="inline-flex h-9 items-center gap-2 rounded-2xl bg-white/70 px-3 text-xs font-black text-slate-700">
+                <Edit3 className="h-3.5 w-3.5" />
+                {t("Edit")}
+              </button>
+            )}
+          </div>
           <div className="mt-4 space-y-3">
             <div className="rounded-2xl bg-white/55 p-4">
               <div className="flex items-center gap-2 text-sm font-black text-slate-500">

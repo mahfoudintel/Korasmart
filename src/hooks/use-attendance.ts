@@ -301,6 +301,74 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
     setSaveStatus("saved");
   };
 
+  const savePlayerAttendance = async (playerName: string, requestedStatus: AttendanceStatus) => {
+    if (!reservationId) return;
+    setSaveError("");
+    setSaveStatus("saving");
+
+    setAttendance((current) => {
+      const reservationRecords = current[reservationId] || {};
+
+      return {
+        ...current,
+        [reservationId]: promoteWaitingList({
+          ...reservationRecords,
+          [playerName]: {
+            status: requestedStatus,
+            joinedAt: reservationRecords[playerName]?.joinedAt || new Date().toISOString()
+          }
+        })
+      };
+    });
+
+    if (supabase && session) {
+      const { error } = await supabase.rpc("korasmart_save_attendance", {
+        p_booking_external_id: reservationId,
+        p_player_name: playerName,
+        p_status: requestedStatus
+      });
+
+      if (error) {
+        setSaveError(error.message || "Attendance could not be saved.");
+        setSaveStatus("error");
+        return;
+      }
+    }
+
+    setSaveStatus("saved");
+  };
+
+  const removePlayerAttendance = async (playerName: string) => {
+    if (!reservationId) return;
+    setSaveError("");
+    setSaveStatus("saving");
+
+    setAttendance((current) => {
+      const reservationRecords = { ...(current[reservationId] || {}) };
+      delete reservationRecords[playerName];
+
+      return {
+        ...current,
+        [reservationId]: promoteWaitingList(reservationRecords)
+      };
+    });
+
+    if (supabase && session) {
+      const { error } = await supabase.rpc("korasmart_delete_attendance", {
+        p_booking_external_id: reservationId,
+        p_player_name: playerName
+      });
+
+      if (error) {
+        setSaveError(error.message || "Attendance could not be saved.");
+        setSaveStatus("error");
+        return;
+      }
+    }
+
+    setSaveStatus("saved");
+  };
+
   return {
     selectedPlayer,
     setSelectedPlayer,
@@ -318,6 +386,8 @@ export function useAttendance(reservationId?: string, reservation?: Reservation)
     saveError,
     loadError,
     setStatus,
-    dropOut
+    dropOut,
+    savePlayerAttendance,
+    removePlayerAttendance
   };
 }
