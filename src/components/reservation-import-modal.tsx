@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarPlus, FileImage, Plus, Save, Trash2, Upload, X } from "lucide-react";
+import { CalendarPlus, FileImage, Plus, ScanText, Save, Trash2, Upload, X } from "lucide-react";
 import { SectionTitle } from "@/components/ui/card";
 import { useLanguage } from "@/components/language-provider";
 import { useReservations } from "@/hooks/use-reservations";
@@ -82,8 +82,11 @@ function parseReservationText(rawText: string) {
   const venue = text.includes("lycee ibn rochd") ? defaultVenue : defaultVenue;
   const rows: ImportRow[] = [];
   const seen = new Set<string>();
-  const regex =
-    /(\d{1,2})\s+(janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre)[\s\S]{0,120}?(\d{1,2})[:h](\d{2})\s*[-–]\s*(\d{1,2})[:h](\d{2})[\s\S]{0,120}?(\d+(?:[,.]\d+)?)\s*(?:dh|mad)?/gi;
+  const monthPattern = "janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre";
+  const regex = new RegExp(
+    `(\\d{1,2})\\s+(${monthPattern})[\\s\\S]{0,140}?(\\d{1,2})[:h](\\d{2})\\s*[-–]\\s*(\\d{1,2})[:h](\\d{2})(?:[\\s\\S]{0,140}?(\\d+(?:[,.]\\d+)?)\\s*(?:dh|mad))?`,
+    "gi"
+  );
 
   let match: RegExpExecArray | null;
   while ((match = regex.exec(text))) {
@@ -104,22 +107,24 @@ function parseReservationText(rawText: string) {
       venue,
       field: defaultField,
       durationMinutes: getDuration(Number(startHour), Number(startMinute), Number(endHour), Number(endMinute)),
-      price: Number(price.replace(",", ".")) || 80,
+      price: price ? Number(price.replace(",", ".")) || 80 : 80,
       status: "upcoming"
     });
   }
 
   return rows;
 }
-
 export function ReservationImportModal({ onClose }: { onClose: () => void }) {
   const { language } = useLanguage();
   const { upsertReservation } = useReservations();
   const t = (text: string) => translateText(text, language);
   const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [text, setText] = useState("");
   const [rows, setRows] = useState<ImportRow[]>([]);
   const [parseMessage, setParseMessage] = useState("");
+  const [ocrStatus, setOcrStatus] = useState<"idle" | "reading" | "done" | "error">("idle");
+  const [ocrProgress, setOcrProgress] = useState(0);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState("");
 
@@ -134,12 +139,15 @@ export function ReservationImportModal({ onClose }: { onClose: () => void }) {
   const chooseImage = (file?: File) => {
     if (!file) return;
     if (imageUrl) URL.revokeObjectURL(imageUrl);
+    setImageFile(file);
     setImageUrl(URL.createObjectURL(file));
+    setOcrStatus("idle");
+    setOcrProgress(0);
     setParseMessage(t("Image selected. Paste text or add rows, then review before saving."));
   };
 
-  const parseText = () => {
-    const parsedRows = parseReservationText(text);
+  const applyParsedText = (sourceText: string) => {
+    const parsedRows = parseReservationText(sourceText);
     setRows(parsedRows);
     setSaveStatus("idle");
     setSaveMessage("");
@@ -148,6 +156,39 @@ export function ReservationImportModal({ onClose }: { onClose: () => void }) {
         ? `${parsedRows.length} ${t("rows found")}. ${t("Review before saving.")}`
         : t("No rows parsed yet. Paste reservation text or add a row manually.")
     );
+  };
+
+  const parseText = () => {
+    applyParsedText(text);
+  };
+
+  const readImage = async () => {
+    if (!imageFile) {
+      setOcrStatus("error");
+      setParseMessage(t("Choose a screenshot first."));
+      return;
+    }
+
+    try {
+      setOcrStatus("reading");
+      setOcrProgress(0);
+      setParseMessage(t("Reading screenshot..."));
+      const Tesseract = await import("tesseract.js");
+      const result = await Tesseract.recognize(imageFile, "fra+eng", {
+        logger: (message) => {
+          if (message.status) setParseMessage(`${t("Reading screenshot...")} ${message.status}`);
+          if (typeof message.progress === "number") setOcrProgress(Math.round(message.progress * 100));
+        }
+      });
+      const extractedText = result.data.text.trim();
+      setText(extractedText);
+      applyParsedText(extractedText);
+      setOcrStatus("done");
+      setOcrProgress(100);
+    } catch {
+      setOcrStatus("error");
+      setParseMessage(t("OCR could not read this image. Paste the text or add rows manually."));
+    }
   };
 
   const updateRow = <Key extends keyof ImportRow>(id: string, key: Key, value: ImportRow[Key]) => {
@@ -231,6 +272,15 @@ export function ReservationImportModal({ onClose }: { onClose: () => void }) {
             {imageUrl && (
               <div className="rounded-3xl border border-slate-200 bg-slate-50 p-2">
                 <img src={imageUrl} alt={t("Screenshot reference")} className="max-h-[320px] w-full rounded-2xl object-contain" />
+                <button onClick={readImage} disabled={ocrStatus === "reading"} className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#102033] px-4 font-black text-white disabled:opacity-60">
+                  <ScanText className="h-4 w-4" />
+                  {ocrStatus === "reading" ? `${t("Reading image")} ${ocrProgress}%` : t("Read image")}
+                </button>
+                {ocrStatus === "reading" && (
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+                    <div className="h-full rounded-full bg-lime-400 transition-all" style={{ width: `${ocrProgress}%` }} />
+                  </div>
+                )}
               </div>
             )}
             {!imageUrl && (
@@ -329,3 +379,4 @@ export function ReservationImportModal({ onClose }: { onClose: () => void }) {
     </div>
   );
 }
+

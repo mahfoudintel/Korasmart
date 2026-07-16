@@ -7,6 +7,7 @@ export type MatchReport = {
   orangeScore: number;
   winner: "fluorescent" | "orange" | "draw";
   scorers: Record<string, number>;
+  mvp?: string;
   notes: string;
   submittedAt?: string;
 };
