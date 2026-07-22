@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, Clock3, Edit3, MapPin, Save, Trophy, UsersRound, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock3, Edit3, Lock, MapPin, Save, Trophy, Unlock, UsersRound, X } from "lucide-react";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { ReservationMapLink } from "@/components/reservation-map-link";
 import { useAttendance } from "@/hooks/use-attendance";
@@ -22,6 +22,7 @@ const emptyReport: MatchReport = {
   winner: "draw",
   scorers: {},
   mvp: "",
+  teamsLocked: false,
   notes: ""
 };
 
@@ -247,7 +248,7 @@ export function MatchDetail({ matchId }: { matchId: string }) {
   const { role } = useRole();
   const canEdit = role === "superuser" || role === "admin";
   const { members } = useMembers();
-  const { reservations } = useReservations();
+  const { reservations, upsertReservation } = useReservations();
   const [editSection, setEditSection] = useState<"attendance" | "teams" | "stats" | null>(null);
   const [saveMessage, setSaveMessage] = useState<{ text: string; isError?: boolean } | null>(null);
   const t = (text: string) => translateText(text, language);
@@ -263,6 +264,25 @@ export function MatchDetail({ matchId }: { matchId: string }) {
     Object.keys(report?.scorers || {}).forEach((player) => names.add(player));
     return [...names].sort((a, b) => a.localeCompare(b));
   }, [members, attendance.confirmedPlayers, report]);
+
+  const toggleTeamsLocked = async () => {
+    if (!reservation) return;
+    const result = await upsertReservation({
+      ...reservation,
+      matchReport: {
+        ...normalizeReport(reservation.matchReport),
+        teamsLocked: !reservation.matchReport?.teamsLocked,
+        submittedAt: new Date().toISOString()
+      }
+    });
+
+    setSaveMessage({
+      text: result.ok
+        ? t(reservation.matchReport?.teamsLocked ? "Teams unlocked." : "Teams locked.")
+        : result.error || t("Teams could not be saved."),
+      isError: !result.ok
+    });
+  };
 
   if (!reservation) {
     return (
@@ -388,12 +408,26 @@ export function MatchDetail({ matchId }: { matchId: string }) {
         <Card>
           <div className="flex items-center justify-between gap-3">
             <SectionTitle>{t("Teams")}</SectionTitle>
-            {canEdit && (
-              <button onClick={() => setEditSection(editSection === "teams" ? null : "teams")} className="inline-flex h-9 items-center gap-2 rounded-2xl bg-white/70 px-3 text-xs font-black text-slate-700">
-                <Edit3 className="h-3.5 w-3.5" />
-                {t("Edit")}
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {report?.teamsLocked && (
+                <span className="inline-flex h-9 items-center gap-2 rounded-2xl bg-lime-100 px-3 text-xs font-black text-[#247e24]">
+                  <Lock className="h-3.5 w-3.5" />
+                  {t("Locked")}
+                </span>
+              )}
+              {canEdit && (
+                <>
+                  <button onClick={toggleTeamsLocked} className="inline-flex h-9 items-center gap-2 rounded-2xl bg-white/70 px-3 text-xs font-black text-slate-700">
+                    {report?.teamsLocked ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                    {report?.teamsLocked ? t("Unlock") : t("Lock")}
+                  </button>
+                  <button onClick={() => setEditSection(editSection === "teams" ? null : "teams")} className="inline-flex h-9 items-center gap-2 rounded-2xl bg-white/70 px-3 text-xs font-black text-slate-700">
+                    <Edit3 className="h-3.5 w-3.5" />
+                    {t("Edit")}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           {report ? (
             <div className="mt-4 grid gap-4">

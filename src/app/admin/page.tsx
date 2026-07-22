@@ -1,5 +1,5 @@
-import { AccessSettings } from "@/components/access-settings";
+import { AdminDashboard } from "@/components/admin-dashboard";
 
 export default function AdminPage() {
-  return <AccessSettings />;
+  return <AdminDashboard />;
 }

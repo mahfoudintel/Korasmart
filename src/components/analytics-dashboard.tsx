@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BarChart3, ShieldCheck, Target, Trophy, Users } from "lucide-react";
+import { ArrowRight, BarChart3, ShieldCheck, Target, Trophy, UserCheck, Users } from "lucide-react";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { NextMatchAttendance } from "@/components/next-match-attendance";
 import { NextReservationTopCard, UpcomingReservationsCard } from "@/components/reservation-dashboard-widgets";
@@ -53,6 +53,14 @@ export function AnalyticsDashboard() {
   const topScorers = getTopScorers(playerScores);
   const hasOfficialStats = recordedReservations.length > 0;
   const bestRated = playerScores.find((player) => player.ratingScore !== null);
+  const reliabilityRows = playerScores
+    .map((player) => ({
+      player: player.player,
+      appearances: player.appearances,
+      reliability: recordedReservations.length ? Math.round((player.appearances / recordedReservations.length) * 100) : 0,
+      goals: player.goals
+    }))
+    .sort((a, b) => b.reliability - a.reliability || b.goals - a.goals);
 
   return (
     <div className="space-y-6">
@@ -66,6 +74,7 @@ export function AnalyticsDashboard() {
         <StatCard icon={ShieldCheck} label="Ratings progress" value={`${ratingsPercent}%`} meta={`${submittedRatings}/${totalPossibleRatings} peer scores`} />
         <StatCard icon={Users} label="Rated players" value={`${ratedPlayers}/${members.length}`} meta="Quantitative scores ready" />
         <StatCard icon={Trophy} label="Official games" value={`${recordedReservations.length}`} meta={`${totalGoals} recorded goals`} />
+        <StatCard icon={UserCheck} label="Reliability leader" value={reliabilityRows[0]?.player || "Pending"} meta={recordedReservations.length ? `${reliabilityRows[0]?.reliability || 0}% recorded games` : "Needs match reports"} />
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -148,6 +157,26 @@ export function AnalyticsDashboard() {
               </div>
             ))}
           </div>
+        </Card>
+
+        <Card>
+          <div className="flex items-center gap-3">
+            <UserCheck className="h-7 w-7 text-lime-300" />
+            <SectionTitle>Reliability</SectionTitle>
+          </div>
+          <div className="mt-5 grid gap-3">
+            {reliabilityRows.slice(0, 8).map((player, index) => (
+              <div key={player.player} className="grid grid-cols-[28px_1fr_auto] items-center gap-3 rounded-2xl border border-white/10 bg-white/[.06] p-3">
+                <span className="text-sm font-black text-lime-300">{index + 1}</span>
+                <div className="min-w-0">
+                  <p className="truncate font-black text-white">{player.player}</p>
+                  <p className="text-xs text-white/55">{player.appearances}/{recordedReservations.length || 0} recorded games</p>
+                </div>
+                <span className="text-xl font-black text-white">{player.reliability}%</span>
+              </div>
+            ))}
+          </div>
+          {!recordedReservations.length && <p className="mt-4 rounded-2xl bg-white/[.06] p-4 text-sm text-white/65">Reliability starts after match reports are saved.</p>}
         </Card>
       </div>
     </div>

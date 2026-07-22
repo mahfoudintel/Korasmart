@@ -8,6 +8,7 @@ export type MatchReport = {
   winner: "fluorescent" | "orange" | "draw";
   scorers: Record<string, number>;
   mvp?: string;
+  teamsLocked?: boolean;
   notes: string;
   submittedAt?: string;
 };

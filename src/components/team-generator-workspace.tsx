@@ -96,6 +96,7 @@ export function TeamGeneratorWorkspace() {
         winner: nextReservation.matchReport?.winner ?? "draw",
         scorers: nextReservation.matchReport?.scorers ?? {},
         mvp: nextReservation.matchReport?.mvp,
+        teamsLocked: nextReservation.matchReport?.teamsLocked ?? false,
         notes: nextReservation.matchReport?.notes ?? "",
         submittedAt: new Date().toISOString()
       }

@@ -18,6 +18,7 @@ import { Card, SectionTitle } from "@/components/ui/card";
 import { useReservations } from "@/hooks/use-reservations";
 import { useAttendance, playingLimit } from "@/hooks/use-attendance";
 import { useFinanceTransactions } from "@/hooks/use-finance-transactions";
+import { useLocalProfile } from "@/hooks/use-local-profile";
 import { financeSnapshot, formatDh } from "@/lib/finance";
 import { formatReservationDate, getNextReservation, getPastReservations, getUpcomingReservations } from "@/lib/reservations";
 import { getReservationOpenAt } from "@/lib/workflow-rules";
@@ -85,6 +86,7 @@ function StatusCard({ icon: Icon, title, children, href, action }: { icon: Statu
 
 export function HomePage() {
   const { reservations } = useReservations();
+  const { profile } = useLocalProfile();
   const nextReservation = getNextReservation(reservations);
   const upcomingReservations = getUpcomingReservations(reservations);
   const lastReservation = getPastReservations(reservations)[0];
@@ -104,8 +106,17 @@ export function HomePage() {
   } = useAttendance(nextReservation?.id, nextReservation);
   const { transactionTotal } = useFinanceTransactions();
   const currentBalance = financeSnapshot.balance + transactionTotal;
-  const teamA = confirmedPlayers.slice(0, 5).map((player) => player.player);
-  const teamB = confirmedPlayers.slice(5, 10).map((player) => player.player);
+  const teamA = nextReservation?.matchReport?.fluorescentTeam?.length
+    ? nextReservation.matchReport.fluorescentTeam
+    : confirmedPlayers.slice(0, 5).map((player) => player.player);
+  const teamB = nextReservation?.matchReport?.orangeTeam?.length
+    ? nextReservation.matchReport.orangeTeam
+    : confirmedPlayers.slice(5, 10).map((player) => player.player);
+  const playerTeam = teamA.includes(profile.playerName)
+    ? "Team A"
+    : teamB.includes(profile.playerName)
+      ? "Team B"
+      : "";
   const openAt = nextReservation ? getReservationOpenAt({ date: nextReservation.date }) : null;
   const attendanceIsOpen = reservationStatus === "open";
 
@@ -312,7 +323,7 @@ export function HomePage() {
         </StatusCard>
         <StatusCard icon={Users} title="Your Status" href="/players" action="View profile">
           <p className="flex items-center gap-2 text-sm font-black text-[#168332]"><CheckCircle2 className="h-5 w-5" /> {currentStatus === "playing" ? "Confirmed" : currentStatus === "waiting" ? "Waiting" : "Not set"}</p>
-          <p className="mt-4 text-2xl font-black leading-none text-[#168332]">{currentStatus === "playing" ? "Team A" : "—"}</p>
+          <p className="mt-4 text-2xl font-black leading-none text-[#168332]">{currentStatus === "playing" ? playerTeam || "Team pending" : "—"}</p>
         </StatusCard>
       </div>
 
