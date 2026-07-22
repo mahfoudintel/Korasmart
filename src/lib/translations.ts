@@ -972,6 +972,18 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Please pay your contribution on time to keep the fund healthy.": {
     fr: "Merci de payer ta cotisation a temps pour garder la caisse saine.",
     ar: "يرجى دفع المساهمة في الوقت المناسب للحفاظ على توازن الصندوق."
+  },
+  "My Payment History": { fr: "Historique de mes paiements", ar: "سجل دفعاتي" },
+  "Payments recorded under your profile.": {
+    fr: "Paiements enregistres sous ton profil.",
+    ar: "الدفعات المسجلة تحت ملفك."
+  },
+  payments: { fr: "paiements", ar: "دفعات" },
+  "Opening contribution": { fr: "Cotisation de depart", ar: "مساهمة البداية" },
+  "Contribution payment": { fr: "Paiement cotisation", ar: "دفعة مساهمة" },
+  "No personal payment recorded yet.": {
+    fr: "Aucun paiement personnel enregistre pour le moment.",
+    ar: "لا توجد دفعة شخصية مسجلة بعد."
   }
 };
 

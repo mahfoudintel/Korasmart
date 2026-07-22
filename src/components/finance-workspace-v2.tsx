@@ -42,6 +42,14 @@ type Contribution = {
   lastDate?: string;
 };
 
+type PaymentEntry = {
+  id: string;
+  player: string;
+  amount: number;
+  date: string;
+  note: string;
+};
+
 type ContributionRow = {
   player: string;
   amount: number;
@@ -76,6 +84,15 @@ const defaultPaymentAccount: PaymentAccount = {
 };
 
 const todayInputValue = () => new Date().toISOString().slice(0, 10);
+const initialPaymentEntries: PaymentEntry[] = financeSnapshot.contributions
+  .filter((contribution) => contribution.amount > 0)
+  .map((contribution) => ({
+    id: `baseline-payment-${contribution.player.toLowerCase().replace(/\s+/g, "-")}`,
+    player: contribution.player,
+    amount: contribution.amount,
+    date: contribution.lastDate || financeSnapshot.baselineEffectiveFrom.slice(0, 10),
+    note: "Opening contribution"
+  }));
 
 function formatDate(value?: string) {
   if (!value) return "-";
@@ -190,6 +207,7 @@ export function FinanceWorkspaceV2({ initialView = "player" }: { initialView?: F
   const [view, setView] = useState<FinanceView>(initialView);
   const [baseBalance, setBaseBalance] = useState(financeSnapshot.balance);
   const [contributions, setContributions] = useState<Contribution[]>(financeSnapshot.contributions);
+  const [paymentEntries, setPaymentEntries] = useState<PaymentEntry[]>(initialPaymentEntries);
   const [paymentAccount, setPaymentAccount] = useState<PaymentAccount>(defaultPaymentAccount);
   const [selectedPlayer, setSelectedPlayer] = useState(profile.playerName);
   const [entryAmount, setEntryAmount] = useState(100);
@@ -209,20 +227,21 @@ export function FinanceWorkspaceV2({ initialView = "player" }: { initialView?: F
     const saved = window.localStorage.getItem(storageKey);
     if (!saved) return;
     try {
-      const parsed = JSON.parse(saved) as { version?: string; balance?: number; contributions?: Contribution[]; paymentAccount?: Partial<PaymentAccount> };
+      const parsed = JSON.parse(saved) as { version?: string; balance?: number; contributions?: Contribution[]; paymentEntries?: PaymentEntry[]; paymentAccount?: Partial<PaymentAccount> };
       if (parsed.paymentAccount) setPaymentAccount({ ...defaultPaymentAccount, ...parsed.paymentAccount });
       if (parsed.version !== storageVersion) return;
       if (typeof parsed.balance === "number") setBaseBalance(parsed.balance);
       if (Array.isArray(parsed.contributions)) setContributions(parsed.contributions);
+      if (Array.isArray(parsed.paymentEntries)) setPaymentEntries(parsed.paymentEntries);
     } catch {
       window.localStorage.removeItem(storageKey);
     }
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify({ version: storageVersion, balance: baseBalance, contributions, paymentAccount }));
+    window.localStorage.setItem(storageKey, JSON.stringify({ version: storageVersion, balance: baseBalance, contributions, paymentEntries, paymentAccount }));
     setLastSavedAt(new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }));
-  }, [baseBalance, contributions, paymentAccount]);
+  }, [baseBalance, contributions, paymentEntries, paymentAccount]);
 
   useEffect(() => {
     if (!selectedPlayer && members[0]) setSelectedPlayer(members[0].name);
@@ -250,6 +269,10 @@ export function FinanceWorkspaceV2({ initialView = "player" }: { initialView?: F
   const paidRows = contributionRows.filter((row) => row.amount > 0);
   const unpaidRows = contributionRows.filter((row) => row.amount <= 0);
   const myContribution = contributionRows.find((row) => row.player === profile.playerName);
+  const personalPaymentRows = paymentEntries
+    .filter((entry) => entry.player === profile.playerName)
+    .slice()
+    .sort((a, b) => b.date.localeCompare(a.date));
   const bookingCostTotal = Math.abs(activeTransactions.filter((item) => item.type === "booking_cost").reduce((sum, item) => sum + item.amount, 0));
   const bookingReversalTotal = activeTransactions.filter((item) => item.type === "booking_cost_reversal").reduce((sum, item) => sum + item.amount, 0);
   const totalUsed = financeSnapshot.usedAmount + bookingCostTotal - bookingReversalTotal;
@@ -294,6 +317,16 @@ export function FinanceWorkspaceV2({ initialView = "player" }: { initialView?: F
         ? current.map((item) => (item.player === selectedPlayer ? { ...item, amount: item.amount + amount, lastAmount: amount, lastDate: entryDate } : item))
         : [...current, { player: selectedPlayer, amount, lastAmount: amount, lastDate: entryDate }];
     });
+    setPaymentEntries((current) => [
+      {
+        id: `payment-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        player: selectedPlayer,
+        amount,
+        date: entryDate,
+        note: "Contribution payment"
+      },
+      ...current
+    ]);
   };
 
   const updateTotal = (player: string, amount: number) => {
@@ -328,6 +361,31 @@ export function FinanceWorkspaceV2({ initialView = "player" }: { initialView?: F
         <MetricCard label={t("Total Funds")} value={formatDh(totalReceived)} tone="blue" icon={Coins} caption={t("Total contributions")} action={<button onClick={() => setShowContributions(true)} className="inline-flex items-center gap-2 rounded-full bg-white/75 px-3 py-2 text-xs font-black text-blue-700">{t("View details")}<ArrowRight className="h-4 w-4" /></button>} />
         <MetricCard label={t("Reservations")} value={formatDate(financeSnapshot.reservedUntil)} tone="orange" icon={CalendarCheck} caption={t("Field reserved weekly")} action={<Link href="/matches" className="inline-flex items-center gap-2 rounded-full bg-white/75 px-3 py-2 text-xs font-black text-blue-700">{t("Matches")}<ArrowRight className="h-4 w-4" /></Link>} />
       </div>
+
+      <Card>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <SectionTitle>{t("My Payment History")}</SectionTitle>
+            <p className="mt-2 text-sm font-semibold text-slate-600">{t("Payments recorded under your profile.")}</p>
+          </div>
+          <span className="inline-flex w-fit rounded-full bg-lime-100 px-3 py-1 text-xs font-black text-[#247e24]">
+            {personalPaymentRows.length} {t("payments")}
+          </span>
+        </div>
+        <div className="mt-5 divide-y divide-white/60 rounded-[18px] border border-white/60 bg-white/45">
+          {personalPaymentRows.length ? (
+            personalPaymentRows.map((payment) => (
+              <div key={payment.id} className="grid grid-cols-[90px_1fr_auto] items-center gap-3 px-4 py-3 text-sm">
+                <span className="font-bold text-slate-500">{formatDate(payment.date)}</span>
+                <span className="truncate font-bold text-slate-700">{t(payment.note)}</span>
+                <span className="font-black text-[#247e24]">+{formatDh(payment.amount)}</span>
+              </div>
+            ))
+          ) : (
+            <p className="px-4 py-4 text-sm font-semibold text-slate-600">{t("No personal payment recorded yet.")}</p>
+          )}
+        </div>
+      </Card>
 
       <Card>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
