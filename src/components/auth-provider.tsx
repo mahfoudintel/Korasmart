@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import { LogIn, Save, ShieldCheck } from "lucide-react";
 import { type Session } from "@supabase/supabase-js";
 import { isAuthRequired, usernameToEmail } from "@/lib/auth";
@@ -55,6 +56,17 @@ const defaultLocalUsers = players.map((player, index) => ({
   playerName: player.name,
   avatarPreset: `/images/avatars/avatar-${String((index % 20) + 1).padStart(2, "0")}.png`
 }));
+
+const authTimeoutMs = 8000;
+
+async function withAuthTimeout<T>(promise: Promise<T>, label: string, timeoutMs = authTimeoutMs) {
+  return await Promise.race<T>([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(`${label} timed out. Check your connection and try again.`)), timeoutMs);
+    })
+  ]);
+}
 
 function readLocalLoggedIn() {
   if (typeof window === "undefined") return false;
@@ -315,13 +327,43 @@ function ProfileLinkError({ onSignOut }: { onSignOut: () => Promise<void> }) {
   );
 }
 
+function ConnectionErrorScreen({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <main className="field-bg grid min-h-screen place-items-center px-4 py-10">
+      <div className="fixed inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.86),rgba(255,255,255,.54),rgba(255,255,255,.18))]" />
+      <section className="relative w-full max-w-md rounded-[28px] border border-white/70 bg-white/78 p-6 text-slate-950 shadow-[0_24px_70px_rgba(2,12,27,.2)] backdrop-blur-[20px]">
+        <FootballLogo compact />
+        <h1 className="mt-8 text-3xl font-black text-slate-950">Connection problem</h1>
+        <p className="mt-3 text-sm leading-6 font-semibold text-slate-600">{message}</p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <button
+            onClick={onRetry}
+            className="inline-flex h-12 items-center justify-center rounded-full bg-[#3dad3d] px-5 font-black text-white shadow-[0_12px_24px_rgba(47,158,47,.22)] transition hover:bg-[#319c31]"
+          >
+            Try again
+          </button>
+          <a
+            href="/network-check"
+            className="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-5 font-black text-slate-950 transition hover:bg-slate-50"
+          >
+            Network check
+          </a>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [loading, setLoading] = useState(Boolean(supabase && isAuthRequired));
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileLoadComplete, setProfileLoadComplete] = useState(false);
   const [localLoggedIn, setLocalLoggedIn] = useState(false);
+  const [connectionError, setConnectionError] = useState("");
+  const isNetworkCheck = pathname === "/network-check";
 
   useEffect(() => {
     if (supabase && isAuthRequired) return;
@@ -346,9 +388,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const client = supabase;
 
     const loadSession = async () => {
-      const { data } = await client.auth.getSession();
-      setSession(data.session);
-      setLoading(false);
+      try {
+        setConnectionError("");
+        const { data } = await withAuthTimeout(client.auth.getSession(), "Login session check");
+        setSession(data.session);
+      } catch (error) {
+        setConnectionError(error instanceof Error ? error.message : "Could not connect to KoraSmart login.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadSession();
@@ -374,7 +422,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfileLoading(true);
       setProfileLoadComplete(false);
 
-      const data = await loadRemoteProfile(session.user.id);
+      let data = null;
+      try {
+        setConnectionError("");
+        data = await withAuthTimeout(loadRemoteProfile(session.user.id), "Player profile check");
+      } catch (error) {
+        if (!cancelled) {
+          setConnectionError(error instanceof Error ? error.message : "Could not load your player profile.");
+          setProfileLoadComplete(false);
+          setProfileLoading(false);
+        }
+        return;
+      }
 
       const roles = Array.isArray(data?.user_roles) ? data.user_roles.map((item: { role?: string }) => item.role) : [];
       const role = roles.includes("superuser")
@@ -433,8 +492,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [loading, profile, session]
   );
 
+  if (isNetworkCheck) {
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  }
+
   if (loading) {
     return <main className="field-bg grid min-h-screen place-items-center text-lg font-black text-lime-300">Loading KoraSmart...</main>;
+  }
+
+  if (connectionError) {
+    return <ConnectionErrorScreen message={connectionError} onRetry={() => window.location.reload()} />;
   }
 
   if (supabase && isAuthRequired && !session) {
