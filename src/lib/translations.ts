@@ -57,6 +57,8 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "Search player": { fr: "Chercher joueur", ar: "بحث عن لاعب" },
   "Unpaid players": { fr: "Joueurs impayes", ar: "لاعبون غير مسددين" },
   "Booking costs": { fr: "Frais de reservation", ar: "تكاليف الحجز" },
+  "Total used": { fr: "Total utilise", ar: "المجموع المستخدم" },
+  "Baseline used amount": { fr: "Montant utilise de depart", ar: "المبلغ المستخدم كبداية" },
   "Booking cost is linked to matches.": {
     fr: "Les frais de reservation sont lies aux matchs.",
     ar: "تكلفة الحجز مرتبطة بالمباريات."

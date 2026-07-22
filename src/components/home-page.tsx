@@ -19,7 +19,7 @@ import { useReservations } from "@/hooks/use-reservations";
 import { useAttendance, playingLimit } from "@/hooks/use-attendance";
 import { useFinanceTransactions } from "@/hooks/use-finance-transactions";
 import { useLocalProfile } from "@/hooks/use-local-profile";
-import { financeSnapshot, formatDh } from "@/lib/finance";
+import { financeSnapshot, formatDh, isAfterFinanceBaseline } from "@/lib/finance";
 import { formatReservationDate, getNextReservation, getPastReservations, getUpcomingReservations } from "@/lib/reservations";
 import { getReservationOpenAt } from "@/lib/workflow-rules";
 import { ReservationMapLink } from "@/components/reservation-map-link";
@@ -104,8 +104,8 @@ export function HomePage() {
     setStatus,
     dropOut
   } = useAttendance(nextReservation?.id, nextReservation);
-  const { transactionTotal } = useFinanceTransactions();
-  const currentBalance = financeSnapshot.balance + transactionTotal;
+  const { transactions } = useFinanceTransactions();
+  const currentBalance = financeSnapshot.balance + transactions.filter((transaction) => isAfterFinanceBaseline(transaction.createdAt)).reduce((sum, transaction) => sum + transaction.amount, 0);
   const teamA = nextReservation?.matchReport?.fluorescentTeam?.length
     ? nextReservation.matchReport.fluorescentTeam
     : confirmedPlayers.slice(0, 5).map((player) => player.player);

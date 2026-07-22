@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarCheck, CheckCircle2, Coins, CreditCard, History, MinusCircle, Plus, Search, ShieldCheck, UserRound, WalletCards } from "lucide-react";
 import { canEditFinance } from "@/lib/access";
-import { financeSnapshot, formatDh } from "@/lib/finance";
+import { financeSnapshot, formatDh, isAfterFinanceBaseline } from "@/lib/finance";
 import { useRole } from "@/hooks/use-role";
 import { useLocalProfile } from "@/hooks/use-local-profile";
 import { useMembers } from "@/hooks/use-members";
@@ -40,7 +40,7 @@ type PaymentAccount = {
 };
 
 const storageKey = "korasmart-finance-admin-v1";
-const storageVersion = "2026-08-31-budget";
+const storageVersion = "2026-07-22-clean-baseline-230";
 const expectedContribution = 200;
 const todayInputValue = () => new Date().toISOString().slice(0, 10);
 const defaultPaymentAccount: PaymentAccount = {
@@ -117,7 +117,7 @@ export function FinanceWorkspace() {
   const { profile } = useLocalProfile();
   const { members } = useMembers();
   const { reservations } = useReservations();
-  const { transactions, transactionTotal } = useFinanceTransactions();
+  const { transactions } = useFinanceTransactions();
   const canEdit = canEditFinance(role);
   const [baseBalance, setBaseBalance] = useState(financeSnapshot.balance);
   const [reservedUntil] = useState(financeSnapshot.reservedUntil);
@@ -187,13 +187,15 @@ export function FinanceWorkspace() {
   const totalReceived = contributionRows.reduce((sum, row) => sum + row.amount, 0);
   const paidCount = contributionRows.filter((row) => row.amount > 0).length;
   const unpaidRows = contributionRows.filter((row) => row.amount <= 0);
-  const adjustedBalance = baseBalance + transactionTotal;
-  const bookingCostTotal = Math.abs(transactions.filter((item) => item.type === "booking_cost").reduce((sum, item) => sum + item.amount, 0));
-  const bookingReversalTotal = transactions.filter((item) => item.type === "booking_cost_reversal").reduce((sum, item) => sum + item.amount, 0);
-  const netBookingCosts = bookingCostTotal - bookingReversalTotal;
+  const activeTransactions = transactions.filter((transaction) => isAfterFinanceBaseline(transaction.createdAt));
+  const activeTransactionTotal = activeTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const adjustedBalance = baseBalance + activeTransactionTotal;
+  const bookingCostTotal = Math.abs(activeTransactions.filter((item) => item.type === "booking_cost").reduce((sum, item) => sum + item.amount, 0));
+  const bookingReversalTotal = activeTransactions.filter((item) => item.type === "booking_cost_reversal").reduce((sum, item) => sum + item.amount, 0);
+  const netBookingCosts = financeSnapshot.usedAmount + bookingCostTotal - bookingReversalTotal;
   const myContribution = contributionRows.find((row) => row.player === profile.playerName);
 
-  const bookingRows = transactions
+  const bookingRows = activeTransactions
     .filter((transaction) => transaction.type === "booking_cost" || transaction.type === "booking_cost_reversal")
     .map((transaction) => {
       const reservation = transaction.bookingId ? reservations.find((item) => item.id === transaction.bookingId) : undefined;
@@ -225,7 +227,15 @@ export function FinanceWorkspace() {
       type: row.status,
       inAmount: row.amount > 0 ? row.amount : 0,
       outAmount: row.amount < 0 ? Math.abs(row.amount) : 0
-    }))
+    })),
+    {
+      id: "baseline-used-amount",
+      date: formatDate("2026-07-22"),
+      item: "Baseline used amount",
+      type: "Outflow",
+      inAmount: 0,
+      outAmount: financeSnapshot.usedAmount
+    }
   ];
 
   const addContribution = () => {
@@ -275,7 +285,7 @@ export function FinanceWorkspace() {
           caption={adjustedBalance < 0 ? t("Amount needed to reach zero.") : t("Caisse is positive.")}
         />
         <MoneyCard label={t("Contributions")} value={formatDh(totalReceived)} tone="green" icon={Coins} caption={t("Total paid by players.")} />
-        <MoneyCard label={t("Booking costs")} value={formatDh(netBookingCosts)} tone="orange" icon={CalendarCheck} caption={t("New bookings deduct automatically.")} />
+        <MoneyCard label={t("Total used")} value={formatDh(netBookingCosts)} tone="orange" icon={CalendarCheck} caption={t("New bookings deduct automatically.")} />
         <MoneyCard label={t("Unpaid players")} value={`${unpaidRows.length}`} tone={unpaidRows.length ? "orange" : "green"} icon={UserRound} caption={`${paidCount}/${members.length} ${t("players paid")}.`} />
       </div>
 
@@ -564,7 +574,7 @@ export function FinanceWorkspace() {
               {ledgerRows.map((row) => (
                 <div key={row.id} className="grid grid-cols-[120px_1fr_180px_110px_110px] items-center gap-3 px-4 py-3 text-sm">
                   <span className="font-bold text-slate-500">{row.date}</span>
-                  <span className="truncate font-black text-slate-950">{row.item}</span>
+                  <span className="truncate font-black text-slate-950">{t(row.item)}</span>
                   <span className="font-bold text-slate-600">{t(row.type)}</span>
                   <span className="text-right font-black text-[#247e24]">{row.inAmount ? formatDh(row.inAmount) : "-"}</span>
                   <span className="text-right font-black text-orange-700">{row.outAmount ? formatDh(row.outAmount) : "-"}</span>

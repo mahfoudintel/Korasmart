@@ -9,7 +9,7 @@ import { useFinanceTransactions } from "@/hooks/use-finance-transactions";
 import { useMembers } from "@/hooks/use-members";
 import { useReservations } from "@/hooks/use-reservations";
 import { useLanguage } from "@/components/language-provider";
-import { financeSnapshot, formatDh } from "@/lib/finance";
+import { financeSnapshot, formatDh, isAfterFinanceBaseline } from "@/lib/finance";
 import { formatReservationDate, getNextReservation } from "@/lib/reservations";
 import { translateText } from "@/lib/translations";
 
@@ -39,12 +39,12 @@ export function AdminDashboard() {
   const { language } = useLanguage();
   const { reservations } = useReservations();
   const { members } = useMembers();
-  const { transactionTotal } = useFinanceTransactions();
+  const { transactions } = useFinanceTransactions();
   const nextReservation = getNextReservation(reservations);
   const attendance = useAttendance(nextReservation?.id, nextReservation);
   const t = (text: string) => translateText(text, language);
   const missingCount = Math.max(members.length - attendance.summary.playing - attendance.summary.waiting, 0);
-  const balance = financeSnapshot.balance + transactionTotal;
+  const balance = financeSnapshot.balance + transactions.filter((transaction) => isAfterFinanceBaseline(transaction.createdAt)).reduce((sum, transaction) => sum + transaction.amount, 0);
   const teamsSaved = Boolean(nextReservation?.matchReport?.fluorescentTeam?.length && nextReservation?.matchReport?.orangeTeam?.length);
   const teamsLocked = Boolean(nextReservation?.matchReport?.teamsLocked);
 
