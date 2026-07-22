@@ -229,6 +229,38 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
     fr: "Les equipes utilisent d'abord la presence, puis les notes anonymes, buts, matchs joues, victoires et ecart de score.",
     ar: "تستخدم الفرق الحضور اولا، ثم التقييمات المجهولة، الاهداف، المشاركات، الانتصارات وفارق النتيجة."
   },
+  "Balanced from confirmed players": { fr: "Equilibre depuis les joueurs confirmes", ar: "متوازنة من اللاعبين المؤكدين" },
+  "Attendance is driving this selection.": {
+    fr: "La presence pilote cette selection.",
+    ar: "الحضور هو الذي يوجه هذا الاختيار."
+  },
+  "Using roster preview until players confirm attendance.": {
+    fr: "Apercu de l'effectif jusqu'a confirmation des joueurs.",
+    ar: "يتم استخدام معاينة القائمة حتى يؤكد اللاعبون حضورهم."
+  },
+  "Save teams to match": { fr: "Enregistrer equipes au match", ar: "حفظ الفرق في المباراة" },
+  "Saved to match": { fr: "Enregistre au match", ar: "محفوظ في المباراة" },
+  "Teams saved to the next match.": {
+    fr: "Equipes enregistrees dans le prochain match.",
+    ar: "تم حفظ الفرق في المباراة القادمة."
+  },
+  "Teams could not be saved.": {
+    fr: "Les equipes n'ont pas pu etre enregistrees.",
+    ar: "تعذر حفظ الفرق."
+  },
+  "Selection list": { fr: "Liste de selection", ar: "قائمة الاختيار" },
+  "Only confirmed and waiting players are considered for final selection.": {
+    fr: "Seuls les joueurs confirmes et en attente sont pris pour la selection finale.",
+    ar: "يتم اعتبار اللاعبين المؤكدين وفي الانتظار فقط للاختيار النهائي."
+  },
+  "Only confirmed players are considered for team balancing.": {
+    fr: "Seuls les joueurs confirmes sont pris pour l'equilibrage.",
+    ar: "يتم اعتماد اللاعبين المؤكدين فقط لتوازن الفرق."
+  },
+  "Confirm attendance to replace this roster preview.": {
+    fr: "Confirmez la presence pour remplacer cet apercu.",
+    ar: "اكد الحضور لاستبدال معاينة القائمة."
+  },
   "Rate each player once. Only anonymous averages feed team balancing.": {
     fr: "Note chaque joueur une seule fois. Seules les moyennes anonymes servent a equilibrer les equipes.",
     ar: "قيّم كل لاعب مرة واحدة. المتوسطات المجهولة فقط تستخدم لتوازن الفرق."

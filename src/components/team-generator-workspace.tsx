@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Scale, ShieldCheck, UsersRound } from "lucide-react";
+import { CalendarDays, CheckCircle2, Save, Scale, ShieldCheck, UsersRound } from "lucide-react";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { useAttendance } from "@/hooks/use-attendance";
 import { useMembers } from "@/hooks/use-members";
 import { useReservations } from "@/hooks/use-reservations";
+import { useRole } from "@/hooks/use-role";
 import { useLanguage } from "@/components/language-provider";
+import { canEditBookings } from "@/lib/access";
 import { balanceTeams, derivePlayerPerformance } from "@/lib/player-performance";
 import { ratingsStorageKey, type PeerRatings } from "@/lib/ratings";
 import { formatReservationDate, getNextReservation } from "@/lib/reservations";
@@ -42,12 +44,16 @@ function TeamCard({ name, tone, players, total }: { name: string; tone: "lime" |
 
 export function TeamGeneratorWorkspace() {
   const { language } = useLanguage();
+  const { role } = useRole();
   const { members } = useMembers();
-  const { reservations } = useReservations();
+  const { reservations, upsertReservation } = useReservations();
   const nextReservation = getNextReservation(reservations);
   const attendance = useAttendance(nextReservation?.id, nextReservation);
   const [ratings, setRatings] = useState<PeerRatings>({});
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveMessage, setSaveMessage] = useState("");
   const t = (text: string) => translateText(text, language);
+  const canSaveTeams = canEditBookings(role);
 
   useEffect(() => {
     try {
@@ -67,6 +73,43 @@ export function TeamGeneratorWorkspace() {
   const ratedSelectedCount = selectedPerformance.filter((player) => player.ratingScore !== null).length;
   const readinessPercent = selectedNames.length ? Math.round((ratedSelectedCount / selectedNames.length) * 100) : 0;
   const readyForBalance = readinessPercent >= 70 || selectedNames.length <= 2;
+  const teamAPlayers = teamA.players.map((player) => player.player);
+  const teamBPlayers = teamB.players.map((player) => player.player);
+  const hasSavedTeams =
+    Boolean(nextReservation?.matchReport?.fluorescentTeam?.length || nextReservation?.matchReport?.orangeTeam?.length) &&
+    nextReservation?.matchReport?.fluorescentTeam.join("|") === teamAPlayers.join("|") &&
+    nextReservation?.matchReport?.orangeTeam.join("|") === teamBPlayers.join("|");
+
+  const saveTeams = async () => {
+    if (!nextReservation) return;
+
+    setSaveStatus("saving");
+    setSaveMessage("");
+
+    const result = await upsertReservation({
+      ...nextReservation,
+      matchReport: {
+        fluorescentTeam: teamAPlayers,
+        orangeTeam: teamBPlayers,
+        fluorescentScore: nextReservation.matchReport?.fluorescentScore ?? 0,
+        orangeScore: nextReservation.matchReport?.orangeScore ?? 0,
+        winner: nextReservation.matchReport?.winner ?? "draw",
+        scorers: nextReservation.matchReport?.scorers ?? {},
+        mvp: nextReservation.matchReport?.mvp,
+        notes: nextReservation.matchReport?.notes ?? "",
+        submittedAt: new Date().toISOString()
+      }
+    });
+
+    if (!result.ok) {
+      setSaveStatus("error");
+      setSaveMessage(result.error || t("Teams could not be saved."));
+      return;
+    }
+
+    setSaveStatus("saved");
+    setSaveMessage(t("Teams saved to the next match."));
+  };
 
   return (
     <div className="space-y-5">
@@ -96,6 +139,31 @@ export function TeamGeneratorWorkspace() {
             <p className="mt-2 font-black">{difference.toFixed(2)}</p>
           </div>
         </div>
+        <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/8 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-black text-white">{t("Balanced from confirmed players")}</p>
+            <p className="mt-1 text-sm font-semibold text-white/65">
+              {confirmedNames.length
+                ? t("Attendance is driving this selection.")
+                : t("Using roster preview until players confirm attendance.")}
+            </p>
+          </div>
+          {canSaveTeams && (
+            <button
+              onClick={saveTeams}
+              disabled={!nextReservation || saveStatus === "saving" || hasSavedTeams}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-lime-300 px-5 font-black text-slate-950 transition hover:bg-lime-200 disabled:opacity-60"
+            >
+              {hasSavedTeams ? <CheckCircle2 className="h-5 w-5" /> : <Save className="h-5 w-5" />}
+              {saveStatus === "saving" ? t("Saving...") : hasSavedTeams ? t("Saved to match") : t("Save teams to match")}
+            </button>
+          )}
+        </div>
+        {saveMessage && (
+          <p className={cn("mt-3 rounded-2xl px-4 py-3 text-sm font-black", saveStatus === "error" ? "bg-orange-100 text-orange-800" : "bg-lime-100 text-[#247e24]")}>
+            {saveMessage}
+          </p>
+        )}
       </section>
 
       <Card>
@@ -134,6 +202,25 @@ export function TeamGeneratorWorkspace() {
               {t("Teams use attendance first, then anonymous peer ratings, recorded goals, appearances, wins, and result margin.")}
             </p>
           </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <SectionTitle>{t("Selection list")}</SectionTitle>
+            <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+              {confirmedNames.length ? t("Only confirmed players are considered for team balancing.") : t("Confirm attendance to replace this roster preview.")}
+            </p>
+          </div>
+          <span className="rounded-full bg-lime-100 px-3 py-1 text-xs font-black text-[#247e24]">{selectedNames.length} {t("players")}</span>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {selectedNames.map((name, index) => (
+            <span key={name} className="rounded-full bg-white/65 px-3 py-2 text-sm font-black text-slate-700">
+              {index + 1}. {name}
+            </span>
+          ))}
         </div>
       </Card>
     </div>
