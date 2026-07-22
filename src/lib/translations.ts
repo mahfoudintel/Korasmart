@@ -927,6 +927,51 @@ export const translations: Record<string, { fr: string; ar: string; en?: string 
   "KoraSmart will appear on your home screen like a normal app.": {
     fr: "KoraSmart apparaitra sur votre ecran d'accueil comme une app normale.",
     ar: "سيظهر KoraSmart على الشاشة الرئيسية مثل تطبيق عادي."
+  },
+  "Player View": { fr: "Vue joueur", ar: "عرض اللاعب" },
+  "Admin View": { fr: "Vue admin", ar: "عرض الإدارة" },
+  "Finances Admin": { fr: "Finances Admin", ar: "إدارة المالية" },
+  "Current Balance": { fr: "Solde actuel", ar: "الرصيد الحالي" },
+  "My Contribution": { fr: "Ma cotisation", ar: "مساهمتي" },
+  "Total Funds": { fr: "Fonds total", ar: "إجمالي الصندوق" },
+  "Total Contributions": { fr: "Total cotisations", ar: "إجمالي المساهمات" },
+  "Total Used": { fr: "Total utilise", ar: "إجمالي المصروفات" },
+  "Financial Summary": { fr: "Resume financier", ar: "ملخص مالي" },
+  "Recent Activity": { fr: "Activite recente", ar: "النشاط الأخير" },
+  "Recent Transactions": { fr: "Transactions recentes", ar: "آخر المعاملات" },
+  "Contributions by Player": { fr: "Cotisations par joueur", ar: "مساهمات اللاعبين" },
+  "Upcoming Reservations": { fr: "Reservations a venir", ar: "الحجوزات القادمة" },
+  "All Contributions": { fr: "Toutes les cotisations", ar: "كل المساهمات" },
+  "Important Reminder": { fr: "Rappel important", ar: "تذكير مهم" },
+  "Positive balance": { fr: "Solde positif", ar: "الرصيد إيجابي" },
+  "Thank you for your contribution.": { fr: "Merci pour ta cotisation.", ar: "شكرا على مساهمتك." },
+  "Contribution not recorded yet.": { fr: "Cotisation pas encore enregistree.", ar: "لم يتم تسجيل المساهمة بعد." },
+  "Field reserved weekly": { fr: "Terrain reserve chaque semaine", ar: "الملعب محجوز كل أسبوع" },
+  "View details": { fr: "Voir details", ar: "عرض التفاصيل" },
+  "Full finance view for contributions, expenses, and bookings.": {
+    fr: "Vue complete des cotisations, depenses et reservations.",
+    ar: "عرض كامل للمساهمات والمصاريف والحجوزات."
+  },
+  "Your contribution, total funds, and recent activity.": {
+    fr: "Ta cotisation, le fonds total et l'activite recente.",
+    ar: "مساهمتك وإجمالي الصندوق وآخر النشاط."
+  },
+  "Needs follow-up": { fr: "A relancer", ar: "يحتاج متابعة" },
+  "All paid": { fr: "Tout est paye", ar: "الجميع دفع" },
+  "Add Contribution": { fr: "Ajouter cotisation", ar: "إضافة مساهمة" },
+  "Record Expense": { fr: "Enregistrer depense", ar: "تسجيل مصروف" },
+  "Download Report": { fr: "Telecharger rapport", ar: "تحميل التقرير" },
+  "View Unpaid": { fr: "Voir impayes", ar: "عرض غير المسددين" },
+  "Unpaid Players": { fr: "Joueurs impayes", ar: "لاعبون غير مسددين" },
+  "Last Payment": { fr: "Dernier paiement", ar: "آخر دفعة" },
+  "Field reservation": { fr: "Reservation terrain", ar: "حجز ملعب" },
+  "Booking expenses are recorded from Matches.": {
+    fr: "Les depenses de reservation sont enregistrees depuis Matchs.",
+    ar: "يتم تسجيل مصاريف الحجز من صفحة المباريات."
+  },
+  "Please pay your contribution on time to keep the fund healthy.": {
+    fr: "Merci de payer ta cotisation a temps pour garder la caisse saine.",
+    ar: "يرجى دفع المساهمة في الوقت المناسب للحفاظ على توازن الصندوق."
   }
 };
 
